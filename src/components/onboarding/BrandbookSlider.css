@@ -1,0 +1,138 @@
+/* Brandbook Slider Animations */
+
+@keyframes slider-open {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-fade-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Slide fade + scale in from left */
+@keyframes slide-fade-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Slide fade out to left */
+@keyframes slide-fade-out-left {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50px) scale(0.95);
+  }
+}
+
+/* Slide fade out to right */
+@keyframes slide-fade-out-right {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.95);
+  }
+}
+
+/* Logo entrance animation with fade and scale */
+@keyframes logo-fade-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Logo pulse animation (currently unused but kept for future use) */
+@keyframes logo-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+/* Logo animation for TwoTshirtSlide - moves from center to right position */
+@keyframes logo-move-from-center-to-right {
+  0% {
+    left: 50%;
+  }
+  100% {
+    left: 71%;
+  }
+}
+
+/* Logo animation for TwoTshirtSlide - moves from right to center position */
+@keyframes logo-move-from-right-to-center {
+  0% {
+    left: 71%;
+  }
+  100% {
+    left: 50%;
+  }
+}
+
+/* Animation utility classes */
+.animate-slider-open {
+  animation: slider-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slide-fade-in-right {
+  animation: slide-fade-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-fade-in-left {
+  animation: slide-fade-in-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-fade-out-left {
+  animation: slide-fade-out-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-fade-out-right {
+  animation: slide-fade-out-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-logo-fade-in {
+  animation: logo-fade-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-logo-pulse {
+  animation: logo-pulse 1.2s ease-in-out;
+}
+
+.animate-logo-move-from-center-to-right {
+  animation: logo-move-from-center-to-right 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-logo-move-from-right-to-center {
+  animation: logo-move-from-right-to-center 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
