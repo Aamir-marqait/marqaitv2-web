@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import LinearProgress from "@/components/ui/linear-progress";
+import { useBranding } from "@/hooks/useBranding";
+import { brandContextService } from "@/api/services/brand-context";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,7 @@ export default function ColorPalette() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const navigate = useNavigate();
+  const { brandingData, setBusinessId } = useBranding();
 
   // Example color palettes for the modal
   const examplePalettes = [
@@ -155,10 +158,61 @@ export default function ColorPalette() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const palette = displayPalettes.find((p) => p.name === selectedPalette);
     if (palette) {
       console.log({ color_preferences: palette.colors });
+
+      // Call Brand Context API with selected colors
+      try {
+        // Get brandbook content from localStorage
+        const brandbookContent = localStorage.getItem('brandbookContent');
+        const brandbook = brandbookContent ? JSON.parse(brandbookContent) : null;
+
+        if (brandbook) {
+          console.log('📡 Creating brand context via API...');
+
+          // Map colors: 0=primary, 1=secondary, 2=accent, 3=others
+          const selectedColors = palette.colors;
+
+          const requestPayload = {
+            business_name: brandingData.newBrand.businessName || 'Your Business',
+            industry_category: brandingData.newBrand.industry || 'General',
+            brand_personality: brandingData.brandDetails.brandPersonality,
+            brand_tone: brandingData.brandDetails.styleReferences,
+            color_palette: {
+              primary: selectedColors[0] || '#6366F1',
+              secondary: selectedColors[1] || '#8B5CF6',
+              accent: selectedColors[2] || '#EC4899',
+              others: selectedColors[3] || '#F3F4F6',
+            },
+            typography: [
+              brandbook.typography.heading.family,
+              brandbook.typography.body.family,
+            ],
+            literature: {
+              tagline: brandbook.brandTagline?.description || '',
+              mission: brandbook.brandMission.description,
+              story: brandbook.brandStory.description,
+            },
+            core_values: brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim()),
+          };
+
+          const brandContextResponse = await brandContextService.createBrandContext(requestPayload);
+
+          // Store business_id in context
+          if (brandContextResponse.business_id) {
+            setBusinessId(brandContextResponse.business_id);
+            console.log('✅ Brand context created with business_id:', brandContextResponse.business_id);
+          }
+        } else {
+          console.warn('⚠️ No brandbook content found, skipping API call');
+        }
+      } catch (apiError) {
+        console.error('❌ Failed to create brand context:', apiError);
+        // Continue flow even if API call fails
+      }
+
       navigate("/onboarding/logo-generation");
     }
   };

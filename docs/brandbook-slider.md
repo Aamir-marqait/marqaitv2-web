@@ -872,7 +872,7 @@ import BrandbookPreview from '@/pages/onboarding/brandbook-preview';
 All content slides (8-13) are dynamically generated using GPT-4o Mini based on the user's brand details input. Content is generated when the user clicks "Continue" on the Brand Details page and stored in localStorage for instant retrieval.
 
 **Generation Process:**
-1. User fills Brand Details form (target audience, personality, core values, style references)
+1. User fills Brand Details form (target audience, personality, core values, Brand Tone)
 2. On "Continue" click, `generateBrandbookContent()` calls GPT-4o Mini API
 3. GPT performs web research for industry-specific best practices
 4. Generated content stored in `localStorage.brandbookContent`
@@ -967,7 +967,7 @@ brandVoice: {
 
 ### Visual Style Guide Slide
 **Features:**
-- **AI-Generated**: GPT creates design guidelines based on brand style references
+- **AI-Generated**: GPT creates design guidelines based on brand Brand Tone
 - Two-column layout for Graphics & Icons and Spacing & Layout
 - Graphics style description (e.g., "Minimalist & Geometric")
 - 3-4 design guidelines as bullet points

@@ -127,7 +127,7 @@ export default function ExistingBrandDetails() {
               </div>
             </div>
 
-            {/* Row 2: Core Values and Style References */}
+            {/* Row 2: Core Values and Brand Tone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Core Values Input */}
               <div className="relative">
@@ -143,10 +143,10 @@ export default function ExistingBrandDetails() {
                 />
               </div>
 
-              {/* Style References Input */}
+              {/* Brand Tone Input */}
               <div className="relative">
                 <label className="absolute -top-2 left-3 md:left-4 bg-white px-1 text-xs md:text-[12px] font-normal leading-[100%] tracking-normal font-inter text-black">
-                  Style References<span className="text-red-500">*</span>
+                  Brand Tone<span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
