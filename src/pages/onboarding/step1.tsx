@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBranding } from "@/hooks/useBranding";
 import BrandOptionCard from "@/components/onboarding/step1/brand-option-card";
@@ -11,6 +11,15 @@ export default function Step1() {
   const [selected, setSelected] = useState("");
   const navigate = useNavigate();
   const { setFlowType } = useBranding();
+
+  // Clean up brandbook content when user reaches Step 0 (starting fresh)
+  useEffect(() => {
+    const brandbookContent = localStorage.getItem('brandbookContent');
+    if (brandbookContent) {
+      console.log('🧹 Cleaning up old brandbook content from localStorage (Step 0)');
+      localStorage.removeItem('brandbookContent');
+    }
+  }, []);
 
   const handleContinue = () => {
     if (selected === "new") {

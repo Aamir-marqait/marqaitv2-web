@@ -26,13 +26,20 @@ export default function NewBrand() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Load data from context on mount
+  // Load data from context on mount and cleanup brandbook content
   useEffect(() => {
     if (brandingData.newBrand.businessName) {
       setBusinessName(brandingData.newBrand.businessName);
     }
     if (brandingData.newBrand.industry) {
       setSelectedIndustry(brandingData.newBrand.industry);
+    }
+
+    // Clean up brandbook content when user reaches Step 1 Brand Info (starting fresh)
+    const brandbookContent = localStorage.getItem('brandbookContent');
+    if (brandbookContent) {
+      console.log('🧹 Cleaning up old brandbook content from localStorage (Step 1)');
+      localStorage.removeItem('brandbookContent');
     }
   }, [brandingData.newBrand]);
 

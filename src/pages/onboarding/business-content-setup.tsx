@@ -14,10 +14,18 @@ export default function BusinessContentSetup() {
     marketingBudget: "",
   });
 
-  // Load data from context on mount
+  // Load data from context on mount and cleanup brandbook content
   useEffect(() => {
     if (brandingData.businessContent.businessDescription) {
       setFormData(brandingData.businessContent);
+    }
+
+    // Clean up brandbook content from localStorage when user reaches Step 2
+    // This ensures old content doesn't persist after the brandbook has been viewed
+    const brandbookContent = localStorage.getItem('brandbookContent');
+    if (brandbookContent) {
+      console.log('🧹 Cleaning up brandbook content from localStorage');
+      localStorage.removeItem('brandbookContent');
     }
   }, [brandingData.businessContent]);
 

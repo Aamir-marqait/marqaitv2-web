@@ -42,6 +42,13 @@ export default function BrandDetails() {
     try {
       console.log('🚀 Starting brandbook content generation...');
 
+      // Clear any existing brandbook content first to ensure fresh generation
+      const existingContent = localStorage.getItem('brandbookContent');
+      if (existingContent) {
+        console.log('🔄 Removing old brandbook content before generating new content');
+        localStorage.removeItem('brandbookContent');
+      }
+
       // Start generation (non-blocking)
       generateBrandbookContent({
         businessName: brandingData.newBrand.businessName || 'Your Business',
@@ -50,9 +57,9 @@ export default function BrandDetails() {
         brandPersonality,
         coreValues,
       }).then((content) => {
-        // Store in localStorage when ready
+        // Store NEW content in localStorage (replaces any old content)
         localStorage.setItem('brandbookContent', JSON.stringify(content));
-        console.log('✅ Brandbook content generated and stored in localStorage');
+        console.log('✅ NEW brandbook content generated and stored in localStorage');
       }).catch((error) => {
         console.error('❌ Failed to generate brandbook content:', error);
         // Continue flow even if generation fails
