@@ -14,6 +14,8 @@ import BrandDetails from '@/pages/onboarding/brand-details';
 import ColorPalette from '@/pages/onboarding/color-palette';
 import LogoGeneration from '@/pages/onboarding/logo-generation';
 import ExistingBrand from '@/pages/onboarding/existing-brand';
+import ExistingBrandDetails from '@/pages/onboarding/existing-brand-details';
+import ExistingBrandColorPalette from '@/pages/onboarding/existing-brand-color-palette';
 import UploadLogo from '@/pages/onboarding/upload-logo';
 import BrandBook from '@/pages/onboarding/brand-book';
 import BrandAnalysis from '@/pages/onboarding/brand-analysis';
@@ -103,6 +105,26 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <ExistingBrand />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/onboarding/existing-brand-details"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ExistingBrandDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/onboarding/existing-brand-color-palette"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ExistingBrandColorPalette />
             </MainLayout>
           </ProtectedRoute>
         }
