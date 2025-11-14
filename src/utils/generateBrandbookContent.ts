@@ -1,5 +1,5 @@
 /**
- * Generate dynamic brandbook content using GPT-4o Mini
+ * Generate dynamic brandbook content using GPT-4o with DuckDuckGo web search
  *
  * This function takes brand information and generates:
  * - Primary & Secondary Color Palettes
@@ -7,8 +7,9 @@
  * - Brand Voice & Tone
  * - Visual Style Guide
  * - Usage Examples
+ * - Brand Value, Vision, Mission & Story
  *
- * GPT will perform web search to find best practices for the specific industry
+ * Uses DuckDuckGo (free, no API key) to research industry trends before generation
  */
 
 interface BrandInput {
@@ -17,6 +18,39 @@ interface BrandInput {
   targetAudience: string;
   brandPersonality: string;
   coreValues: string;
+}
+
+/**
+ * Search DuckDuckGo for industry-specific information
+ */
+async function searchDuckDuckGo(query: string): Promise<string> {
+  try {
+    const response = await fetch(
+      `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`
+    );
+    const data = await response.json();
+
+    // Combine relevant results
+    let searchResults = '';
+
+    if (data.AbstractText) {
+      searchResults += `Overview: ${data.AbstractText}\n\n`;
+    }
+
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+      searchResults += 'Related Information:\n';
+      data.RelatedTopics.slice(0, 5).forEach((topic: any) => {
+        if (topic.Text) {
+          searchResults += `- ${topic.Text}\n`;
+        }
+      });
+    }
+
+    return searchResults || 'No specific information found.';
+  } catch (error) {
+    console.error('DuckDuckGo search error:', error);
+    return 'Search unavailable.';
+  }
 }
 
 export interface BrandbookContent {
@@ -82,6 +116,18 @@ export interface BrandbookContent {
       clearSpace: string;
     };
   };
+  brandValue: {
+    description: string;
+  };
+  brandVision: {
+    description: string;
+  };
+  brandMission: {
+    description: string;
+  };
+  brandStory: {
+    description: string;
+  };
 }
 
 export async function generateBrandbookContent(
@@ -93,7 +139,23 @@ export async function generateBrandbookContent(
     throw new Error('OpenAI API key not found in environment variables');
   }
 
-  const prompt = `You are a professional brand designer and strategist. Based on the following brand information, generate comprehensive brandbook guidelines.
+  // Step 1: Search DuckDuckGo for industry trends
+  console.log('🔍 Searching for industry trends...');
+  const searchQueries = [
+    `${brandData.industry} branding trends 2025`,
+    `${brandData.industry} design best practices`,
+    `${brandData.industry} color palette trends`
+  ];
+
+  const searchResults = await Promise.all(
+    searchQueries.map(query => searchDuckDuckGo(query))
+  );
+
+  const industryResearch = searchResults.join('\n---\n');
+  console.log('✅ Industry research completed');
+
+  // Step 2: Generate brandbook with research context
+  const prompt = `You are a professional brand designer and strategist. Based on the following brand information AND industry research, generate comprehensive brandbook guidelines.
 
 **Brand Information:**
 - Business Name: ${brandData.businessName}
@@ -102,7 +164,10 @@ export async function generateBrandbookContent(
 - Brand Personality: ${brandData.brandPersonality}
 - Core Values: ${brandData.coreValues}
 
-**Task:** Research and generate professional brandbook content including:
+**Industry Research (from web search):**
+${industryResearch}
+
+**Task:** Using the brand information and industry research above, generate professional brandbook content including:
 
 1. **Color Palette:**
    - Primary color with 4 shade variations (lightest to darkest)
@@ -130,6 +195,26 @@ export async function generateBrandbookContent(
    - List 4-5 logo usage "Don'ts"
    - Specify minimum logo size for both digital and print
    - Specify clear space requirements
+
+6. **Brand Value:**
+   - Write a comprehensive 4-6 sentence paragraph describing the brand's core values
+   - Focus on what the brand stands for, beliefs, and guiding principles
+   - Make it inspiring and authentic to the brand personality
+
+7. **Brand Vision:**
+   - Write a comprehensive 4-6 sentence paragraph describing the brand's vision
+   - Focus on the future aspirations and long-term goals
+   - Paint a picture of where the brand is heading
+
+8. **Brand Mission:**
+   - Write a comprehensive 4-6 sentence paragraph describing the brand's mission
+   - Focus on what the brand does, who it serves, and why it exists
+   - Make it clear, actionable, and purpose-driven
+
+9. **Brand Story:**
+   - Write a comprehensive 6-8 sentence paragraph telling the brand's story
+   - Include the origin, journey, challenges overcome, and current position
+   - Make it engaging, emotional, and memorable
 
 **Important:**
 - Research current design trends in the ${brandData.industry} industry
@@ -204,6 +289,18 @@ export async function generateBrandbookContent(
       },
       "clearSpace": "Clear space specification"
     }
+  },
+  "brandValue": {
+    "description": "A comprehensive 4-6 sentence paragraph describing the brand's core values, beliefs, and guiding principles"
+  },
+  "brandVision": {
+    "description": "A comprehensive 4-6 sentence paragraph describing the brand's vision, future aspirations, and long-term goals"
+  },
+  "brandMission": {
+    "description": "A comprehensive 4-6 sentence paragraph describing what the brand does, who it serves, and why it exists"
+  },
+  "brandStory": {
+    "description": "A comprehensive 6-8 sentence paragraph telling the brand's story, including origin, journey, and current position"
   }
 }`;
 
@@ -215,11 +312,11 @@ export async function generateBrandbookContent(
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: 'You are a professional brand designer and strategist. Always respond with valid JSON only, no additional text.'
+            content: 'You are a professional brand designer and strategist. You have been provided with industry research from web search. Use this research to create authentic, trendy, and industry-specific brandbook content. Always respond with valid JSON only, no additional text.'
           },
           {
             role: 'user',

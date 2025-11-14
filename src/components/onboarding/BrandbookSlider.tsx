@@ -10,6 +10,10 @@ import TypographySlide from "./slides/TypographySlide";
 import BrandVoiceSlide from "./slides/BrandVoiceSlide";
 import VisualStyleSlide from "./slides/VisualStyleSlide";
 import UsageExamplesSlide from "./slides/UsageExamplesSlide";
+import BrandValueSlide from "./slides/BrandValueSlide";
+import BrandVisionSlide from "./slides/BrandVisionSlide";
+import BrandMissionSlide from "./slides/BrandMissionSlide";
+import BrandStorySlide from "./slides/BrandStorySlide";
 import bg1 from "@/assets/brandbook/1.png";
 import bg2 from "@/assets/brandbook/2.png";
 import bg3 from "@/assets/brandbook/3.png";
@@ -33,7 +37,7 @@ interface SlideConfig {
   id: number;
   bgImage: string;
   title: string;
-  type: "centered" | "two-tshirt" | "right-logo" | "four-color-variants" | "color-palette" | "typography" | "brand-voice" | "visual-style" | "usage-examples";
+  type: "centered" | "two-tshirt" | "right-logo" | "four-color-variants" | "color-palette" | "typography" | "brand-voice" | "visual-style" | "usage-examples" | "brand-value" | "brand-vision" | "brand-mission" | "brand-story";
   backgroundSize?: "cover" | "contain" | "100% 100%";
   logoTopPosition?: string;
   logoLeftPosition?: string;
@@ -87,6 +91,11 @@ export default function BrandbookSlider({
     { id: 11, bgImage: bg4, title: "Brand Voice & Tone", type: "brand-voice" },
     { id: 12, bgImage: bg5, title: "Visual Style Guide", type: "visual-style" },
     { id: 13, bgImage: bg6, title: "Usage Examples", type: "usage-examples" },
+    // NEW: Brand Purpose & Story Slides
+    { id: 14, bgImage: bg1, title: "Brand Value", type: "brand-value" },
+    { id: 15, bgImage: bg2, title: "Brand Vision", type: "brand-vision" },
+    { id: 16, bgImage: bg3, title: "Brand Mission", type: "brand-mission" },
+    { id: 17, bgImage: bg4, title: "Brand Story", type: "brand-story" },
   ];
 
   // Lock body scroll when slider is open
@@ -472,6 +481,58 @@ export default function BrandbookSlider({
             if (slide.type === "usage-examples") {
               return (
                 <UsageExamplesSlide
+                  key={slide.id}
+                  backgroundImage={slide.bgImage}
+                  isActive={isActive}
+                  slideIndex={index}
+                  animationClass={animationClass}
+                />
+              );
+            }
+
+            // NEW: Brand Value Slide
+            if (slide.type === "brand-value") {
+              return (
+                <BrandValueSlide
+                  key={slide.id}
+                  backgroundImage={slide.bgImage}
+                  isActive={isActive}
+                  slideIndex={index}
+                  animationClass={animationClass}
+                />
+              );
+            }
+
+            // NEW: Brand Vision Slide
+            if (slide.type === "brand-vision") {
+              return (
+                <BrandVisionSlide
+                  key={slide.id}
+                  backgroundImage={slide.bgImage}
+                  isActive={isActive}
+                  slideIndex={index}
+                  animationClass={animationClass}
+                />
+              );
+            }
+
+            // NEW: Brand Mission Slide
+            if (slide.type === "brand-mission") {
+              return (
+                <BrandMissionSlide
+                  key={slide.id}
+                  backgroundImage={slide.bgImage}
+                  isActive={isActive}
+                  slideIndex={index}
+                  animationClass={animationClass}
+                />
+              );
+            }
+
+            // NEW: Brand Story Slide
+            if (slide.type === "brand-story") {
+              return (
+                <BrandStorySlide
                   key={slide.id}
                   backgroundImage={slide.bgImage}
                   isActive={isActive}
