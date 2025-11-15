@@ -23,10 +23,30 @@ export interface BrandContextRequest {
 }
 
 export interface BrandContextResponse {
-  success: boolean;
-  message: string;
-  business_id: string;
-  data: BrandContextRequest;
+  id: string;
+  business_name: string;
+  industry_category: string;
+  brand_personality: string;
+  brand_tone: string;
+  color_palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    other: string | null;
+  };
+  typography: string[];
+  literature: {
+    tagline: string;
+    mission: string;
+    story: string;
+  };
+  core_values: string[];
+  target_audience: string[];
+  selected_logo_url: string | null;
+  brand_book_pdf_url: string | null;
+  llm_generated_data: any;
+  created_at: string;
+  updated_at: string;
 }
 
 class BrandContextService {
@@ -48,9 +68,9 @@ class BrandContextService {
       );
 
       // Store business_id in localStorage for future use
-      if (response.data.business_id) {
-        localStorage.setItem('business_id', response.data.business_id);
-        console.log('✅ Business ID stored:', response.data.business_id);
+      if (response.data.id) {
+        localStorage.setItem('business_id', response.data.id);
+        console.log('✅ Business ID stored in localStorage:', response.data.id);
       }
 
       return response.data;

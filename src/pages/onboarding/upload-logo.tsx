@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Upload, Loader2 } from "lucide-react";
 import { fal } from "@fal-ai/client";
 import { useBranding } from "@/hooks/useBranding";
+import { useLogo } from "@/contexts/LogoContext";
 import LinearProgress from "@/components/ui/linear-progress";
 import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
 import LogoVariantsLoadingScreen from "@/components/onboarding/LogoVariantsLoadingScreen";
@@ -11,11 +12,12 @@ import { logoUploadService } from "@/api/services/logo-upload";
 export default function UploadLogo() {
   const navigate = useNavigate();
   const { brandingData, setExistingBrandLogo } = useBranding();
+  const { setSelectedLogoUrl } = useLogo();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
+  const [, setUploadedLogoUrl] = useState<string | null>(null);
   const [showSlider, setShowSlider] = useState(false);
   const [logoVariants, setLogoVariants] = useState<{
     blackBg: string;
@@ -191,11 +193,19 @@ export default function UploadLogo() {
       return;
     }
 
-    // Check if business_id exists
-    const businessId = brandingData.businessId;
+    // Check if business_id exists in context or localStorage
+    let businessId = brandingData.businessId;
+    if (!businessId) {
+      // Fallback to localStorage
+      businessId = localStorage.getItem('business_id');
+      console.log('📦 Business ID from localStorage:', businessId);
+    } else {
+      console.log('📦 Business ID from context:', businessId);
+    }
+
     if (!businessId) {
       setUploadError('Business ID not found. Please complete the previous steps.');
-      console.error('❌ No business_id found in context');
+      console.error('❌ No business_id found in context or localStorage');
       return;
     }
 
@@ -212,6 +222,11 @@ export default function UploadLogo() {
       // Save logo URL and file to context
       setUploadedLogoUrl(response.selected_logo_url);
       setExistingBrandLogo(selectedFile);
+
+      // Set logo URL in LogoContext so slides can access it
+      setSelectedLogoUrl(response.selected_logo_url);
+      console.log('✅ Logo URL set in LogoContext:', response.selected_logo_url);
+
       setIsUploading(false);
 
       // Generate variants using fal-ai with uploaded logo URL
