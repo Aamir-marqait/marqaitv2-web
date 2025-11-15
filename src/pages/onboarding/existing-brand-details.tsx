@@ -4,7 +4,7 @@ import { useBranding } from "@/hooks/useBranding";
 import LinearProgress from "@/components/ui/linear-progress";
 import { generateBrandbookContent } from "@/utils/generateBrandbookContent";
 
-export default function BrandDetails() {
+export default function ExistingBrandDetails() {
   const { brandingData, setBrandDetailsData } = useBranding();
   const [targetAudience, setTargetAudience] = useState("");
   const [brandPersonality, setBrandPersonality] = useState("");
@@ -40,7 +40,7 @@ export default function BrandDetails() {
     // Generate brandbook content in background and store in localStorage
     // This will be ready by the time user reaches the brandbook slider
     try {
-      console.log('🚀 Starting brandbook content generation...');
+      console.log('🚀 Starting brandbook content generation (Existing Brand)...');
 
       // Clear any existing brandbook content first to ensure fresh generation
       const existingContent = localStorage.getItem('brandbookContent');
@@ -59,7 +59,7 @@ export default function BrandDetails() {
       }).then((content) => {
         // Store NEW content in localStorage (replaces any old content)
         localStorage.setItem('brandbookContent', JSON.stringify(content));
-        console.log('✅ NEW brandbook content generated and stored in localStorage');
+        console.log('✅ NEW brandbook content generated and stored in localStorage (Existing Brand)');
       }).catch((error) => {
         console.error('❌ Failed to generate brandbook content:', error);
         // Continue flow even if generation fails
@@ -70,7 +70,7 @@ export default function BrandDetails() {
     }
 
     // Navigate immediately (don't wait for generation)
-    navigate("/onboarding/color-palette");
+    navigate("/onboarding/existing-brand-color-palette");
   };
 
   const handleBack = () => {
@@ -146,7 +146,7 @@ export default function BrandDetails() {
               {/* Brand Tone Input */}
               <div className="relative">
                 <label className="absolute -top-2 left-3 md:left-4 bg-white px-1 text-xs md:text-[12px] font-normal leading-[100%] tracking-normal font-inter text-black">
-                 Brand Tone <span className="text-red-500">*</span>
+                  Brand Tone<span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"

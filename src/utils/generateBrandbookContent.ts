@@ -86,6 +86,9 @@ export interface BrandbookContent {
       usage: string;
     };
   };
+  brandTagline: {
+    description: string;
+  };
   brandVoice: {
     voiceTraits: Array<{
       trait: string;
@@ -196,22 +199,28 @@ ${industryResearch}
    - Specify minimum logo size for both digital and print
    - Specify clear space requirements
 
-6. **Brand Value:**
+6. **Brand Tagline:**
+   - Write a catchy, memorable tagline (3-7 words)
+   - Should capture the brand essence and value proposition
+   - Make it inspiring, clear, and aligned with brand personality
+   - Examples: "Just Do It", "Think Different", "The Ultimate Driving Machine"
+
+7. **Brand Value:**
    - Write a comprehensive 4-6 sentence paragraph describing the brand's core values
    - Focus on what the brand stands for, beliefs, and guiding principles
    - Make it inspiring and authentic to the brand personality
 
-7. **Brand Vision:**
+8. **Brand Vision:**
    - Write a comprehensive 4-6 sentence paragraph describing the brand's vision
    - Focus on the future aspirations and long-term goals
    - Paint a picture of where the brand is heading
 
-8. **Brand Mission:**
+9. **Brand Mission:**
    - Write a comprehensive 4-6 sentence paragraph describing the brand's mission
    - Focus on what the brand does, who it serves, and why it exists
    - Make it clear, actionable, and purpose-driven
 
-9. **Brand Story:**
+10. **Brand Story:**
    - Write a comprehensive 6-8 sentence paragraph telling the brand's story
    - Include the origin, journey, challenges overcome, and current position
    - Make it engaging, emotional, and memorable
@@ -289,6 +298,9 @@ ${industryResearch}
       },
       "clearSpace": "Clear space specification"
     }
+  },
+  "brandTagline": {
+    "description": "A catchy, memorable tagline (3-7 words) that captures the brand essence and value proposition"
   },
   "brandValue": {
     "description": "A comprehensive 4-6 sentence paragraph describing the brand's core values, beliefs, and guiding principles"

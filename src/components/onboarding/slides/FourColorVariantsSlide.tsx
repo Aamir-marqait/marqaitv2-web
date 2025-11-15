@@ -68,8 +68,8 @@ export default function FourColorVariantsSlide({
               src={logoVariants.blackBg || selectedLogoUrl}
               alt="Logo on Black Background"
               style={{
-                maxWidth: "60%",
-                maxHeight: "60%",
+                maxWidth: "50%",
+                maxHeight: "50%",
                 objectFit: "contain",
               }}
             />
@@ -89,8 +89,8 @@ export default function FourColorVariantsSlide({
               src={logoVariants.whiteBg || selectedLogoUrl}
               alt="Logo on White Background"
               style={{
-                maxWidth: "60%",
-                maxHeight: "60%",
+                maxWidth: "50%",
+                maxHeight: "50%",
                 objectFit: "contain",
               }}
             />
@@ -99,7 +99,7 @@ export default function FourColorVariantsSlide({
           {/* Light Red Background Variant */}
           <div
             style={{
-              backgroundColor: "#FEE2E2",
+              backgroundColor: "#efa49a",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -110,8 +110,8 @@ export default function FourColorVariantsSlide({
               src={logoVariants.lightRedBg || selectedLogoUrl}
               alt="Logo on Light Red Background"
               style={{
-                maxWidth: "60%",
-                maxHeight: "60%",
+                maxWidth: "50%",
+                maxHeight: "50%",
                 objectFit: "contain",
               }}
             />
@@ -120,7 +120,7 @@ export default function FourColorVariantsSlide({
           {/* Yellow Background Variant */}
           <div
             style={{
-              backgroundColor: "#FEF3C7",
+              backgroundColor: "#fbf8cf",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -131,8 +131,8 @@ export default function FourColorVariantsSlide({
               src={logoVariants.yellowBg || selectedLogoUrl}
               alt="Logo on Yellow Background"
               style={{
-                maxWidth: "60%",
-                maxHeight: "60%",
+                maxWidth: "50%",
+                maxHeight: "50%",
                 objectFit: "contain",
               }}
             />

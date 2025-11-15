@@ -138,9 +138,9 @@ export default function BrandbookSlider({
 
   const handlePrev = () => {
     if (currentSlide === 0 && !isAnimating) {
-      // On first slide, go back to logo page
+      // On first slide, go back to previous page
       onClose();
-      navigate("/onboarding/logo-generation");
+      navigate(-1);
     } else if (currentSlide > 0 && !isAnimating) {
       setDirection("prev");
       setIsAnimating(true);

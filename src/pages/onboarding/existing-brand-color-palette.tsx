@@ -18,7 +18,7 @@ import {
   type ColorPalette,
 } from "@/utils/colorPalettes";
 
-export default function ColorPalette() {
+export default function ExistingBrandColorPalette() {
   const [selectedPalette, setSelectedPalette] = useState<string>("");
   const [customColorInput, setCustomColorInput] = useState<string>("");
   const [customPalettes, setCustomPalettes] = useState<ColorPalette[]>([]);
@@ -159,13 +159,16 @@ export default function ColorPalette() {
   };
 
   const handleContinue = async () => {
+    console.log('🔵 handleContinue called!');
     const palette = displayPalettes.find((p) => p.name === selectedPalette);
+    console.log('🔵 Selected palette:', palette);
+
     if (palette) {
       console.log({ color_preferences: palette.colors });
 
       // Call Brand Context API with selected colors
       try {
-        console.log('📡 Creating brand context via API (Create New Brand)...');
+        console.log('📡 Creating brand context via API (Existing Brand)...');
         console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
         console.log('🔍 Branding data:', brandingData);
 
@@ -209,7 +212,7 @@ export default function ColorPalette() {
         // Continue flow even if API call fails
       }
 
-      navigate("/onboarding/logo-generation");
+      navigate("/onboarding/upload-logo");
     }
   };
 

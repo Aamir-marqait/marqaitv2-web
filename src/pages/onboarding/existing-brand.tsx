@@ -42,7 +42,7 @@ export default function ExistingBrand() {
       businessName,
       industry: selectedIndustry,
     });
-    navigate("/onboarding/upload-logo");
+    navigate("/onboarding/existing-brand-details");
   };
 
   const handleBack = () => {

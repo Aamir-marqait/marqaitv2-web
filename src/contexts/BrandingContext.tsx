@@ -36,6 +36,9 @@ export interface BrandingData {
   // Flow type
   flowType: 'new' | 'existing' | null;
 
+  // Business ID from API
+  businessId: string | null;
+
   // New Brand Flow
   newBrand: NewBrandData;
   brandDetails: BrandDetailsData;
@@ -52,6 +55,7 @@ export interface BrandingData {
 export interface BrandingContextType {
   brandingData: BrandingData;
   setFlowType: (flowType: 'new' | 'existing') => void;
+  setBusinessId: (businessId: string) => void;
   setNewBrandData: (data: NewBrandData) => void;
   setBrandDetailsData: (data: BrandDetailsData) => void;
   setColorPaletteData: (data: ColorPaletteData) => void;
@@ -69,6 +73,7 @@ interface BrandingProviderProps {
 
 const initialBrandingData: BrandingData = {
   flowType: null,
+  businessId: null,
   newBrand: {
     businessName: '',
     industry: '',
@@ -97,6 +102,10 @@ export function BrandingProvider({ children }: BrandingProviderProps) {
 
   const setFlowType = useCallback((flowType: 'new' | 'existing') => {
     setBrandingData(prev => ({ ...prev, flowType }));
+  }, []);
+
+  const setBusinessId = useCallback((businessId: string) => {
+    setBrandingData(prev => ({ ...prev, businessId }));
   }, []);
 
   const setNewBrandData = useCallback((data: NewBrandData) => {
@@ -130,6 +139,7 @@ export function BrandingProvider({ children }: BrandingProviderProps) {
   const value: BrandingContextType = {
     brandingData,
     setFlowType,
+    setBusinessId,
     setNewBrandData,
     setBrandDetailsData,
     setColorPaletteData,
