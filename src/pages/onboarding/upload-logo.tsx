@@ -1,14 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
+import { fal } from "@fal-ai/client";
 import { useBranding } from "@/hooks/useBranding";
 import LinearProgress from "@/components/ui/linear-progress";
+import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
+import LogoVariantsLoadingScreen from "@/components/onboarding/LogoVariantsLoadingScreen";
+import { logoUploadService } from "@/api/services/logo-upload";
 
 export default function UploadLogo() {
   const navigate = useNavigate();
   const { brandingData, setExistingBrandLogo } = useBranding();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
+  const [showSlider, setShowSlider] = useState(false);
+  const [logoVariants, setLogoVariants] = useState<{
+    blackBg: string;
+    whiteBg: string;
+    lightRedBg: string;
+    yellowBg: string;
+  } | null>(null);
+  const [isGeneratingVariants, setIsGeneratingVariants] = useState(false);
+  const [variantsProgress, setVariantsProgress] = useState(0);
+
+  // Configure fal-ai with API key
+  useEffect(() => {
+    fal.config({
+      credentials: import.meta.env.VITE_FAL_KEY
+    });
+  }, []);
 
   // Load data from context on mount
   useEffect(() => {
@@ -58,19 +81,160 @@ export default function UploadLogo() {
     event.preventDefault();
   };
 
+  const generateLogoVariants = async (logoUrl: string) => {
+    try {
+      console.log('🚀 Starting logo variant generation for uploaded logo:', logoUrl);
+      setIsGeneratingVariants(true);
+      setVariantsProgress(0);
+
+      // Generate 4 variants in parallel with different prompts
+      const prompts = [
+        {
+          key: 'blackBg',
+          prompt: 'Optimize this logo to look professional and clear on a pure black background. Enhance contrast, add white or light colored outlines if needed, ensure all elements are visible and crisp.',
+        },
+        {
+          key: 'whiteBg',
+          prompt: 'Optimize this logo to look professional and clear on a pure white background. Enhance contrast, add dark outlines if needed, ensure all elements are visible and crisp.',
+        },
+        {
+          key: 'lightRedBg',
+          prompt: 'Optimize this logo to look professional and clear on a light red (#FEE2E2) background. Adjust colors for optimal contrast and visibility, ensure it stands out beautifully.',
+        },
+        {
+          key: 'yellowBg',
+          prompt: 'Optimize this logo to look professional and clear on a light yellow (#FEF3C7) background. Adjust colors for optimal contrast and visibility, ensure it stands out beautifully.',
+        },
+      ];
+
+      const results: any = {
+        blackBg: '',
+        whiteBg: '',
+        lightRedBg: '',
+        yellowBg: '',
+      };
+
+      // Generate each variant
+      for (let i = 0; i < prompts.length; i++) {
+        const { key, prompt } = prompts[i];
+        setVariantsProgress((i / prompts.length) * 100);
+        console.log(`🎨 Generating ${key} variant (${i + 1}/${prompts.length})...`);
+
+        try {
+          const result = await fal.subscribe("fal-ai/nano-banana/edit", {
+            input: {
+              prompt: prompt,
+              image_urls: [logoUrl],
+              num_images: 1,
+              aspect_ratio: "1:1",
+              output_format: "png",
+            },
+            logs: true,
+            onQueueUpdate: (update) => {
+              console.log(`📊 ${key} queue update:`, update.status);
+            },
+          });
+
+          console.log(`✅ ${key} result:`, result.data);
+
+          // Store the generated image URL
+          if (result.data?.images?.[0]?.url) {
+            results[key] = result.data.images[0].url;
+            console.log(`✅ ${key} variant generated:`, results[key]);
+          } else {
+            // Fallback to original logo if generation fails
+            results[key] = logoUrl;
+            console.warn(`⚠️ ${key} variant failed, using original logo`);
+          }
+        } catch (error) {
+          console.error(`❌ Error generating ${key} variant:`, error);
+          // Fallback to original logo
+          results[key] = logoUrl;
+        }
+      }
+
+      setVariantsProgress(100);
+      setLogoVariants(results);
+      setIsGeneratingVariants(false);
+
+      // Open slider after variants are generated
+      setTimeout(() => {
+        setShowSlider(true);
+      }, 300);
+    } catch (error) {
+      console.error("Error generating logo variants:", error);
+      setIsGeneratingVariants(false);
+      // Still open slider with original logo as fallback
+      setLogoVariants({
+        blackBg: logoUrl,
+        whiteBg: logoUrl,
+        lightRedBg: logoUrl,
+        yellowBg: logoUrl,
+      });
+      setTimeout(() => {
+        setShowSlider(true);
+      }, 300);
+    }
+  };
+
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleContinue = () => {
-    // Save logo to context
-    if (selectedFile) {
-      setExistingBrandLogo(selectedFile);
+  const handleContinue = async () => {
+    if (!selectedFile) return;
+
+    // Validate file
+    const validationError = logoUploadService.validateLogoFile(selectedFile);
+    if (validationError) {
+      setUploadError(validationError);
+      return;
     }
+
+    // Check if business_id exists
+    const businessId = brandingData.businessId;
+    if (!businessId) {
+      setUploadError('Business ID not found. Please complete the previous steps.');
+      console.error('❌ No business_id found in context');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadError(null);
+
+      // Upload logo to server
+      console.log('📤 Uploading logo for business_id:', businessId);
+      const response = await logoUploadService.uploadLogo(businessId, selectedFile);
+
+      console.log('✅ Logo upload response:', response);
+
+      // Save logo URL and file to context
+      setUploadedLogoUrl(response.selected_logo_url);
+      setExistingBrandLogo(selectedFile);
+      setIsUploading(false);
+
+      // Generate variants using fal-ai with uploaded logo URL
+      await generateLogoVariants(response.selected_logo_url);
+    } catch (error: any) {
+      console.error('❌ Logo upload failed:', error);
+      setUploadError(error.message || 'Failed to upload logo. Please try again.');
+      setIsUploading(false);
+    }
+  };
+
+  const handleCloseSlider = () => {
+    setShowSlider(false);
     navigate("/onboarding/brand-book");
   };
 
   return (
+    <>
+      {/* Loading Screen for Logo Variants Generation */}
+      {isGeneratingVariants && (
+        <LogoVariantsLoadingScreen progress={variantsProgress} />
+      )}
+
     <div className="bg-linear-to-b from-[#F3E8FF] to-white flex flex-col items-center pt-10 px-4 md:px-0">
       <div className="w-full max-w-4xl mx-auto">
         <LinearProgress step={1} totalSteps={3} />
@@ -151,6 +315,13 @@ export default function UploadLogo() {
               </label>
             )}
           </div>
+
+          {/* Error Message */}
+          {uploadError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 font-inter">{uploadError}</p>
+            </div>
+          )}
         </div>
 
         {/* Buttons */}
@@ -170,8 +341,8 @@ export default function UploadLogo() {
           {/* Continue Button */}
           <button
             onClick={handleContinue}
-            disabled={!selectedFile}
-            className="cursor-pointer px-10 py-3 rounded-xl font-inter text-base font-semibold leading-5 tracking-normal uppercase text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedFile || isUploading}
+            className="cursor-pointer px-10 py-3 rounded-xl font-inter text-base font-semibold leading-5 tracking-normal uppercase text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
               background:
                 "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
@@ -179,10 +350,25 @@ export default function UploadLogo() {
                 "linear-gradient(0deg, #8F00FF 0%, #DAABFF 99.37%) 1",
             }}
           >
-            CONTINUE
+            {isUploading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                UPLOADING...
+              </>
+            ) : (
+              'CONTINUE'
+            )}
           </button>
         </div>
       </div>
+
+      {/* Brandbook Slider with Logo Variants */}
+      <BrandbookSlider
+        isOpen={showSlider}
+        onClose={handleCloseSlider}
+        logoVariants={logoVariants}
+      />
     </div>
+    </>
   );
 }
