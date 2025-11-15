@@ -111,7 +111,7 @@ export default function BrandVoiceSlide({
               Our Voice
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
-              {brandVoice.voiceTraits.map((item, idx) => (
+              {brandVoice.voiceTraits.map((item:any, idx:number) => (
                 <div
                   key={idx}
                   style={{
@@ -162,7 +162,7 @@ export default function BrandVoiceSlide({
               Tone by Context
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              {brandVoice.toneContexts.map((item, idx) => (
+              {brandVoice.toneContexts.map((item:any, idx:number) => (
                 <div
                   key={idx}
                   style={{
