@@ -69,9 +69,12 @@ export default function EditLogo() {
       console.log('🖼️ Using logo URL for API:', originalLogoUrl);
 
       // Call fal-ai nano-banana/edit API using the clean original URL
+      // Add white background instruction to ensure pure white (#FFFFFF) background
+      const enhancedPrompt = `${prompt}. Make sure the logo has a pure white (#FFFFFF) background with no other colors in the background.`;
+
       const result = await fal.subscribe("fal-ai/nano-banana/edit", {
         input: {
-          prompt: prompt,
+          prompt: enhancedPrompt,
           image_urls: [originalLogoUrl], // Use clean URL without cache-buster
           num_images: 1,
           aspect_ratio: "1:1",
