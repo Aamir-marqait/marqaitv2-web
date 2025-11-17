@@ -111,6 +111,24 @@ class BrandContextService {
       throw handleApiError(error);
     }
   }
+
+  /**
+   * Update business context with operational details (Step 2)
+   * @param businessId - The business ID
+   * @param data - Business context data
+   */
+  async updateBusinessContext(businessId: string, data: any): Promise<void> {
+    try {
+      await axiosInstance.put(
+        `${this.baseUrl}/${businessId}/business-context`,
+        data,
+        { timeout: 0 }
+      );
+      console.log('✅ Business context updated successfully');
+    } catch (error: any) {
+      throw handleApiError(error);
+    }
+  }
 }
 
 export const brandContextService = new BrandContextService();
