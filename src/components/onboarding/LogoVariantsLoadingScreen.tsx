@@ -5,6 +5,19 @@ interface LogoVariantsLoadingScreenProps {
 }
 
 export default function LogoVariantsLoadingScreen({ progress }: LogoVariantsLoadingScreenProps) {
+  // Determine loading message based on progress
+  const getLoadingMessage = () => {
+    if (progress < 25) {
+      return "Removing background...";
+    } else if (progress < 40) {
+      return "Saving your logo...";
+    } else if (progress < 100) {
+      return "Generating brandbook...";
+    } else {
+      return "Almost ready!";
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
@@ -32,7 +45,7 @@ export default function LogoVariantsLoadingScreen({ progress }: LogoVariantsLoad
           textAlign: "center",
         }}
       >
-        Generating brandbook...
+        {getLoadingMessage()}
       </p>
 
       {/* Progress Bar Container */}
