@@ -136,7 +136,7 @@ export default function VisualStyleSlide({
                 paddingLeft: "20px",
               }}
             >
-              {visualStyle.graphicsAndIcons.guidelines.map((guideline, idx) => (
+              {visualStyle.graphicsAndIcons.guidelines.map((guideline: string, idx: number) => (
                 <li key={idx}>{guideline}</li>
               ))}
             </ul>
@@ -175,7 +175,7 @@ export default function VisualStyleSlide({
                 paddingLeft: "20px",
               }}
             >
-              {visualStyle.spacingAndLayout.principles.map((principle, idx) => (
+              {visualStyle.spacingAndLayout.principles.map((principle: string, idx: number) => (
                 <li key={idx}>{principle}</li>
               ))}
             </ul>

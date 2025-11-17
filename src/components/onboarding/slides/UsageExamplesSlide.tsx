@@ -149,7 +149,7 @@ export default function UsageExamplesSlide({
                 paddingLeft: "20px",
               }}
             >
-              {usageExamples.dos.map((item, idx) => (
+              {usageExamples.dos.map((item: string, idx: number) => (
                 <li key={idx}>{item}</li>
               ))}
             </ul>
@@ -199,7 +199,7 @@ export default function UsageExamplesSlide({
                 paddingLeft: "20px",
               }}
             >
-              {usageExamples.donts.map((item, idx) => (
+              {usageExamples.donts.map((item: string, idx: number) => (
                 <li key={idx}>{item}</li>
               ))}
             </ul>

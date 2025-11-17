@@ -26,10 +26,24 @@ export interface LogoData {
 
 export interface BusinessContentData {
   businessDescription: string;
-  offerings: string;
-  customers: string;
-  businessGoal: string;
-  marketingBudget: string;
+  websiteUrl: string;
+  productName: string;
+  productDescription: string;
+  productCategory: string;
+  productPriceRange: string;
+  productUrl: string;
+  targetAgeRange: string;
+  targetGender: string;
+  targetLocations: string;
+  targetInterests: string;
+  targetBehaviors: string;
+  customerPainPoints: string;
+  businessPhone: string;
+  businessEmail: string;
+  businessAddress: string;
+  socialMediaFacebook: string;
+  socialMediaInstagram: string;
+  socialMediaLinkedin: string;
 }
 
 // Combined Branding Data
@@ -91,10 +105,24 @@ const initialBrandingData: BrandingData = {
   logo: {},
   businessContent: {
     businessDescription: '',
-    offerings: '',
-    customers: '',
-    businessGoal: '',
-    marketingBudget: '',
+    websiteUrl: '',
+    productName: '',
+    productDescription: '',
+    productCategory: '',
+    productPriceRange: '',
+    productUrl: '',
+    targetAgeRange: '',
+    targetGender: 'all',
+    targetLocations: '',
+    targetInterests: '',
+    targetBehaviors: '',
+    customerPainPoints: '',
+    businessPhone: '',
+    businessEmail: '',
+    businessAddress: '',
+    socialMediaFacebook: '',
+    socialMediaInstagram: '',
+    socialMediaLinkedin: '',
   },
 };
 
