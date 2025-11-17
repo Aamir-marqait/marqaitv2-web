@@ -64,7 +64,7 @@ class BrandContextService {
       const response = await axiosInstance.post<BrandContextResponse>(
         `${this.baseUrl}/brand-context`,
         data,
-        { timeout: 30000 }
+        { timeout: 0 }
       );
 
       // Store business_id in localStorage for future use
@@ -92,6 +92,24 @@ class BrandContextService {
    */
   clearBusinessId(): void {
     localStorage.removeItem('business_id');
+  }
+
+  /**
+   * Save selected logo URL to business profile
+   * @param businessId - The business ID
+   * @param logoUrl - The selected logo URL
+   */
+  async saveLogoUrl(businessId: string, logoUrl: string): Promise<void> {
+    try {
+      await axiosInstance.put(
+        `${this.baseUrl}/${businessId}/logo`,
+        { logo_url: logoUrl },
+        { timeout: 0 }
+      );
+      console.log('✅ Logo URL saved to business profile:', logoUrl);
+    } catch (error: any) {
+      throw handleApiError(error);
+    }
   }
 }
 

@@ -34,7 +34,7 @@ class LogoUploadService {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 60000, // 60 seconds for file upload
+          timeout: 0, // No timeout
         }
       );
 

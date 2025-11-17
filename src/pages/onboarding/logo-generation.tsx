@@ -7,6 +7,7 @@ import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
 import LogoVariantsLoadingScreen from "@/components/onboarding/LogoVariantsLoadingScreen";
 import { useLogo } from "@/contexts/LogoContext";
 import { useBranding } from "@/hooks/useBranding";
+import { brandContextService } from "@/api/services/brand-context";
 
 export default function LogoGeneration() {
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
@@ -148,7 +149,7 @@ export default function LogoGeneration() {
     }
   };
 
-  const handleLogoClick = (idx: number, isEditClick: boolean) => {
+  const handleLogoClick = async (idx: number, isEditClick: boolean) => {
     if (isEditClick) {
       // Navigate to edit page
       setSelectedLogo(idx);
@@ -159,9 +160,19 @@ export default function LogoGeneration() {
       const selectedLogoUrl = logos[idx];
       setSelectedLogoUrl(selectedLogoUrl); // Store in context for consistency
 
+      // Save logo URL to backend
+      const businessId = brandingData.businessId || localStorage.getItem('business_id');
+      if (businessId) {
+        try {
+          console.log('💾 Saving selected logo URL to business profile...');
+          await brandContextService.saveLogoUrl(businessId, selectedLogoUrl);
+        } catch (error) {
+          console.error('❌ Failed to save logo URL:', error);
+          // Continue flow even if save fails
+        }
+      }
+
       // Generate variants before opening slider
-      // NOTE: Currently fails with ValidationError because logos[idx] is local path
-      // Will work when logo API provides publicly accessible URLs
       generateLogoVariants(selectedLogoUrl);
     }
   };
