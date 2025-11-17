@@ -170,7 +170,7 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path="/onboarding/business-content-setup"
+       
         element={
           <ProtectedRoute>
             <MainLayout>

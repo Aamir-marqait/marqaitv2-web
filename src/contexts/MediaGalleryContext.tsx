@@ -1,19 +1,21 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useCallback, type ReactNode } from 'react';
 
-export type MediaFolder = 'products' | 'venue' | 'team' | 'events';
+export type MediaFolder = 'Products' | 'Venue' | 'Team' | 'Events' | 'Other';
 
 export interface MediaFile {
-  id: string;
+  id: string; // Local ID for preview
   file: File;
   preview: string;
   folder: MediaFolder;
   uploadedAt: Date;
+  mediaId?: string; // Backend media ID for deletion
 }
 
 export interface MediaGalleryContextType {
   mediaByFolder: Record<MediaFolder, MediaFile[]>;
   addMedia: (folder: MediaFolder, files: File[]) => void;
+  updateMediaIds: (folder: MediaFolder, localIdToMediaId: Record<string, string>) => void;
   removeMedia: (folder: MediaFolder, fileId: string) => void;
   getMediaForFolder: (folder: MediaFolder) => MediaFile[];
   clearFolder: (folder: MediaFolder) => void;
@@ -28,15 +30,16 @@ interface MediaGalleryProviderProps {
 
 export function MediaGalleryProvider({ children }: MediaGalleryProviderProps) {
   const [mediaByFolder, setMediaByFolder] = useState<Record<MediaFolder, MediaFile[]>>({
-    products: [],
-    venue: [],
-    team: [],
-    events: [],
+    Products: [],
+    Venue: [],
+    Team: [],
+    Events: [],
+    Other: [],
   });
 
   const addMedia = useCallback((folder: MediaFolder, files: File[]) => {
     const newMediaFiles: MediaFile[] = files.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       file,
       preview: URL.createObjectURL(file),
       folder,
@@ -47,6 +50,27 @@ export function MediaGalleryProvider({ children }: MediaGalleryProviderProps) {
       ...prev,
       [folder]: [...prev[folder], ...newMediaFiles],
     }));
+  }, []);
+
+  const updateMediaIds = useCallback((folder: MediaFolder, localIdToMediaId: Record<string, string>) => {
+    console.log('📝 updateMediaIds called for folder:', folder);
+    console.log('📝 Mapping object:', localIdToMediaId);
+
+    setMediaByFolder((prev) => {
+      const updatedFolder = prev[folder].map((media) => {
+        const newMediaId = localIdToMediaId[media.id] || media.mediaId;
+        console.log(`📝 Updating media ${media.id}: mediaId ${media.mediaId} → ${newMediaId}`);
+        return {
+          ...media,
+          mediaId: newMediaId,
+        };
+      });
+
+      return {
+        ...prev,
+        [folder]: updatedFolder,
+      };
+    });
   }, []);
 
   const removeMedia = useCallback((folder: MediaFolder, fileId: string) => {
@@ -92,6 +116,7 @@ export function MediaGalleryProvider({ children }: MediaGalleryProviderProps) {
   const value: MediaGalleryContextType = {
     mediaByFolder,
     addMedia,
+    updateMediaIds,
     removeMedia,
     getMediaForFolder,
     clearFolder,
