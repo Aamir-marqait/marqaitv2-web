@@ -12,8 +12,10 @@ export default function EditLogo() {
   const [prompt, setPrompt] = useState("");
   const [showSlider, setShowSlider] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null); // Store clean URL for API calls
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [imageKey, setImageKey] = useState(0); // Force image re-render
 
   // Configure fal-ai with API key
   useEffect(() => {
@@ -22,18 +24,33 @@ export default function EditLogo() {
     });
   }, []);
 
-  // Get logo from location state or context
+  // Get logo from location state or context (only on initial mount)
   useEffect(() => {
     const stateLogoUrl = (location.state as { logoUrl?: string })?.logoUrl;
-    if (stateLogoUrl) {
+    if (stateLogoUrl && !logoUrl) {
+      // Only set if logoUrl is not already set
+      const cleanUrl = stateLogoUrl.split('?')[0];
+      setOriginalLogoUrl(cleanUrl);
       setLogoUrl(stateLogoUrl);
-    } else if (selectedLogoUrl) {
+      console.log('🎬 Initial logo loaded from state:', stateLogoUrl);
+    } else if (selectedLogoUrl && !logoUrl) {
+      // Only set if logoUrl is not already set
+      const cleanUrl = selectedLogoUrl.split('?')[0];
+      setOriginalLogoUrl(cleanUrl);
       setLogoUrl(selectedLogoUrl);
+      console.log('🎬 Initial logo loaded from context:', selectedLogoUrl);
     }
-  }, [location.state, selectedLogoUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]); // Remove selectedLogoUrl from dependencies to prevent loops
+
+  // Debug: Log when logoUrl changes
+  useEffect(() => {
+    console.log('🔍 logoUrl state changed to:', logoUrl);
+    console.log('🔍 imageKey is now:', imageKey);
+  }, [logoUrl, imageKey]);
 
   const handleRunPrompt = async () => {
-    if (!prompt.trim() || !logoUrl) {
+    if (!prompt.trim() || !originalLogoUrl) {
       setEditError("Please enter a prompt and ensure a logo is selected");
       return;
     }
@@ -42,12 +59,13 @@ export default function EditLogo() {
       setIsEditing(true);
       setEditError(null);
       console.log('🎨 Starting logo edit with prompt:', prompt);
+      console.log('🖼️ Using logo URL for API:', originalLogoUrl);
 
-      // Call fal-ai nano-banana/edit API
+      // Call fal-ai nano-banana/edit API using the clean original URL
       const result = await fal.subscribe("fal-ai/nano-banana/edit", {
         input: {
           prompt: prompt,
-          image_urls: [logoUrl],
+          image_urls: [originalLogoUrl], // Use clean URL without cache-buster
           num_images: 1,
           aspect_ratio: "1:1",
           output_format: "png",
@@ -66,9 +84,21 @@ export default function EditLogo() {
       // Update the logo with the edited version
       if (result.data?.images?.[0]?.url) {
         const editedLogoUrl = result.data.images[0].url;
-        setLogoUrl(editedLogoUrl);
-        setSelectedLogoUrl(editedLogoUrl); // Update context as well
-        console.log('✅ Logo updated with edited version:', editedLogoUrl);
+        console.log('🎨 New logo URL from API:', editedLogoUrl);
+
+        const timestamp = Date.now();
+        const displayUrl = `${editedLogoUrl}?v=${timestamp}`;
+
+        // Update states - order matters!
+        setImageKey(prev => prev + 1); // Increment key first
+        setOriginalLogoUrl(editedLogoUrl); // Store clean URL
+        setLogoUrl(displayUrl); // Set display URL with cache buster
+
+        // Update context last (after local state is set)
+        setSelectedLogoUrl(editedLogoUrl);
+
+        console.log('✅ Local state updated with:', displayUrl);
+        console.log('✅ Context updated with:', editedLogoUrl);
         setPrompt(""); // Clear prompt after successful edit
       } else {
         setEditError("Failed to edit logo. Please try again.");
@@ -125,9 +155,19 @@ export default function EditLogo() {
               )}
               {logoUrl ? (
                 <img
+                  key={`logo-${imageKey}`}
                   src={logoUrl}
                   alt="Selected logo"
                   className="max-w-full max-h-full object-contain"
+                  crossOrigin="anonymous"
+                  onLoad={(e) => {
+                    console.log('✅ Image loaded:', logoUrl);
+                    console.log('✅ Image element src:', (e.target as HTMLImageElement).src);
+                  }}
+                  onError={(e) => {
+                    console.error('❌ Image failed to load:', logoUrl);
+                    console.error('❌ Image element src:', (e.target as HTMLImageElement).src);
+                  }}
                 />
               ) : (
                 <div className="text-center">
