@@ -21,6 +21,7 @@ export interface ColorPaletteData {
 export interface LogoData {
   generatedLogo?: string;
   editedLogo?: string;
+  generatedLogoUrls?: string[]; // Six logo variations from API
 }
 
 export interface BusinessContentData {

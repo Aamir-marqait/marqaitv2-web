@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
 import { fal } from "@fal-ai/client";
 import LinearProgress from "@/components/ui/linear-progress";
-import logoPlaceholder from "@/assets/logo.png";
 import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
 import LogoVariantsLoadingScreen from "@/components/onboarding/LogoVariantsLoadingScreen";
 import { useLogo } from "@/contexts/LogoContext";
+import { useBranding } from "@/hooks/useBranding";
 
 export default function LogoGeneration() {
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
@@ -22,8 +22,10 @@ export default function LogoGeneration() {
     lightRedBg: string;
     yellowBg: string;
   } | null>(null);
+  const [logoError, setLogoError] = useState(false);
   const navigate = useNavigate();
   const { setSelectedLogoUrl } = useLogo();
+  const { brandingData } = useBranding();
 
   // Configure fal-ai with API key
   useEffect(() => {
@@ -33,20 +35,23 @@ export default function LogoGeneration() {
   }, []);
 
   useEffect(() => {
-    // Simulate API call to generate logos
-    setTimeout(() => {
-      // Mock logo URLs - replace with actual API response
-      setLogos([
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-      ]);
+    // Check if logo URLs are available from BrandingContext
+    const generatedLogoUrls = brandingData.logo.generatedLogoUrls;
+
+    if (generatedLogoUrls && generatedLogoUrls.length === 6) {
+      console.log('✅ Using generated logo URLs from API:', generatedLogoUrls);
+      setLogos(generatedLogoUrls);
       setLoading(false);
-    }, 3000);
-  }, []);
+      setLogoError(false);
+    } else if (generatedLogoUrls && generatedLogoUrls.length === 0) {
+      // API failed - no logos generated
+      console.log('❌ Logo generation failed');
+      setLoading(false);
+      setLogoError(true);
+    }
+    // If generatedLogoUrls is undefined/null, keep showing skeleton loader
+    // (API call still in progress)
+  }, [brandingData.logo.generatedLogoUrls]);
 
   const generateLogoVariants = async (logoUrl: string) => {
     try {
@@ -199,6 +204,27 @@ export default function LogoGeneration() {
                 >
                   {/* Skeleton for logo */}
                   <div className="w-full h-full bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" />
+                </div>
+              ))
+            : logoError
+            ? // Error State - Something went wrong
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-[20px] overflow-hidden flex items-center justify-center"
+                  style={{
+                    boxShadow: "0px 4px 12px 0px #00000010",
+                    height: "200px",
+                  }}
+                >
+                  <div className="text-center px-4">
+                    <p className="font-inter text-sm font-semibold text-red-500 mb-2">
+                      Something went wrong
+                    </p>
+                    <p className="font-inter text-xs text-gray-500">
+                      Failed to generate logo
+                    </p>
+                  </div>
                 </div>
               ))
             : // Actual Logos

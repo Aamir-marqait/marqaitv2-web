@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import LinearProgress from "@/components/ui/linear-progress";
 import { useBranding } from "@/hooks/useBranding";
 import { brandContextService } from "@/api/services/brand-context";
+import { sixLogosService } from "@/api/services/six-logos";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,7 @@ export default function ColorPalette() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const navigate = useNavigate();
-  const { brandingData, setBusinessId } = useBranding();
+  const { brandingData, setBusinessId, setLogoData } = useBranding();
 
   // Example color palettes for the modal
   const examplePalettes = [
@@ -158,58 +159,126 @@ export default function ColorPalette() {
     }
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     const palette = displayPalettes.find((p) => p.name === selectedPalette);
     if (palette) {
       console.log({ color_preferences: palette.colors });
 
-      // Call Brand Context API with selected colors
-      try {
-        console.log('📡 Creating brand context via API (Create New Brand)...');
-        console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
-        console.log('🔍 Branding data:', brandingData);
+      // Map colors: 0=primary, 1=secondary, 2=accent, 3=others
+      const selectedColors = palette.colors;
 
-        // Map colors: 0=primary, 1=secondary, 2=accent, 3=others
-        const selectedColors = palette.colors;
-
-        const requestPayload = {
-          business_name: brandingData.newBrand.businessName || 'Your Business',
-          industry_category: brandingData.newBrand.industry || 'General',
-          brand_personality: brandingData.brandDetails.brandPersonality || '',
-          brand_tone: brandingData.brandDetails.styleReferences || '',
-          color_palette: {
-            primary: selectedColors[0] || '#6366F1',
-            secondary: selectedColors[1] || '#8B5CF6',
-            accent: selectedColors[2] || '#EC4899',
-            others: selectedColors[3] || '#F3F4F6',
-          },
-          typography: [],
-          literature: {
-            tagline: '',
-            mission: '',
-            story: '',
-          },
-          core_values: brandingData.brandDetails.coreValues
-            ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
-            : [],
-        };
-
-        console.log('📦 Request payload:', requestPayload);
-
-        const brandContextResponse = await brandContextService.createBrandContext(requestPayload);
-
-        // Store business_id in context
-        if (brandContextResponse.id) {
-          setBusinessId(brandContextResponse.id);
-          console.log('✅ Brand context created with business_id:', brandContextResponse.id);
-          console.log('✅ Business ID also saved to localStorage automatically');
-        }
-      } catch (apiError) {
-        console.error('❌ Failed to create brand context:', apiError);
-        // Continue flow even if API call fails
-      }
-
+      // Navigate immediately - API calls will happen in background
       navigate("/onboarding/logo-generation");
+
+      // Fire Brand Context API in background (non-blocking)
+      (async () => {
+        try {
+          console.log('📡 Creating brand context via API (Create New Brand)...');
+          console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
+          console.log('🔍 Branding data:', brandingData);
+
+          const requestPayload = {
+            business_name: brandingData.newBrand.businessName || 'Your Business',
+            industry_category: brandingData.newBrand.industry || 'General',
+            brand_personality: brandingData.brandDetails.brandPersonality || '',
+            brand_tone: brandingData.brandDetails.styleReferences || '',
+            color_palette: {
+              primary: selectedColors[0] || '#6366F1',
+              secondary: selectedColors[1] || '#8B5CF6',
+              accent: selectedColors[2] || '#EC4899',
+              others: selectedColors[3] || '#F3F4F6',
+            },
+            typography: [],
+            literature: {
+              tagline: '',
+              mission: '',
+              story: '',
+            },
+            core_values: brandingData.brandDetails.coreValues
+              ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
+              : [],
+          };
+
+          console.log('📦 Request payload:', requestPayload);
+
+          const brandContextResponse = await brandContextService.createBrandContext(requestPayload);
+
+          // Store business_id in context
+          if (brandContextResponse.id) {
+            setBusinessId(brandContextResponse.id);
+            console.log('✅ Brand context created with business_id:', brandContextResponse.id);
+            console.log('✅ Business ID also saved to localStorage automatically');
+          }
+        } catch (apiError) {
+          console.error('❌ Failed to create brand context:', apiError);
+        }
+      })();
+
+      // Fire Six Logos API in background (non-blocking)
+      (async () => {
+        try {
+          const businessId = localStorage.getItem('business_id');
+
+          if (!businessId) {
+            console.error('❌ No business_id found in localStorage. Cannot generate logos.');
+          } else {
+            console.log('🎨 Generating 6 logo variations with business_id:', businessId);
+
+            const targetAudienceArray = brandingData.brandDetails.targetAudience
+              ? brandingData.brandDetails.targetAudience.split(',').map((v: string) => v.trim())
+              : [];
+
+            const sixLogosPayload = {
+              parameters: {
+                business_id: businessId,
+                business_name: brandingData.newBrand.businessName || 'Your Business',
+                industry_category: brandingData.newBrand.industry || 'General',
+                brand_personality: brandingData.brandDetails.brandPersonality || '',
+                brand_tone: brandingData.brandDetails.styleReferences || '',
+                color_palette: {
+                  primary: selectedColors[0] || '#6366F1',
+                  secondary: selectedColors[1] || '#8B5CF6',
+                  accent: selectedColors[2] || '#EC4899',
+                  other: selectedColors[3] || '#F3F4F6',
+                },
+                core_values: brandingData.brandDetails.coreValues
+                  ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
+                  : [],
+                target_audience: targetAudienceArray,
+              },
+              priority: 'NORMAL',
+              max_retries: 0,
+            };
+
+            console.log('📦 Six Logos request payload:', sixLogosPayload);
+
+            const sixLogosResponse = await sixLogosService.generateSixLogos(sixLogosPayload);
+
+            // Store logo URLs in context
+            if (sixLogosResponse.logo_urls && sixLogosResponse.logo_urls.length > 0) {
+              setLogoData({
+                ...brandingData.logo,
+                generatedLogoUrls: sixLogosResponse.logo_urls,
+              });
+              console.log('✅ Six logos generated:', sixLogosResponse.logo_urls);
+            } else {
+              // API returned but no logo URLs
+              setLogoData({
+                ...brandingData.logo,
+                generatedLogoUrls: [],
+              });
+              console.log('⚠️ Six logos API response has no logo URLs');
+            }
+          }
+        } catch (logoError) {
+          console.error('❌ Failed to generate logos:', logoError);
+          // Set empty array to indicate error
+          setLogoData({
+            ...brandingData.logo,
+            generatedLogoUrls: [],
+          });
+        }
+      })();
     }
   };
 
