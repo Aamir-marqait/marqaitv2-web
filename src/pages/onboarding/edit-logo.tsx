@@ -4,17 +4,24 @@ import { Send, Loader2 } from "lucide-react";
 import { fal } from "@fal-ai/client";
 import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
 import { useLogo } from "@/contexts/LogoContext";
+import { useBranding } from "@/hooks/useBranding";
+import { brandContextService } from "@/api/services/brand-context";
+import { removeWhiteBackground, dataURLtoFile } from "@/utils/removeBackground";
+import { logoUploadService } from "@/api/services/logo-upload";
 
 export default function EditLogo() {
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedLogoUrl, setSelectedLogoUrl } = useLogo();
+  const { brandingData } = useBranding();
   const [prompt, setPrompt] = useState("");
   const [showSlider, setShowSlider] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [originalLogoUrl, setOriginalLogoUrl] = useState<string | null>(null); // Store clean URL for API calls
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [imageKey, setImageKey] = useState(0); // Force image re-render
 
   // Configure fal-ai with API key
@@ -112,9 +119,77 @@ export default function EditLogo() {
     }
   };
 
-  const handleSave = () => {
-    // Open brandbook slider with edited logo
-    setShowSlider(true);
+  const handleSave = async () => {
+    if (!originalLogoUrl) {
+      setSaveError("No logo to save. Please select a logo first.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+
+      // Get business_id from context or localStorage
+      let businessId = brandingData.businessId;
+      if (!businessId) {
+        businessId = localStorage.getItem('business_id');
+        console.log('📦 Business ID from localStorage:', businessId);
+      } else {
+        console.log('📦 Business ID from context:', businessId);
+      }
+
+      if (!businessId) {
+        setSaveError('Business ID not found. Please complete the previous steps.');
+        console.error('❌ No business_id found');
+        setIsSaving(false);
+        return;
+      }
+
+      // Step 1: Remove white background from the edited logo
+      let finalLogoUrl = originalLogoUrl;
+      try {
+        console.log('🎨 Removing white background from edited logo...');
+        const logoWithoutBg = await removeWhiteBackground(originalLogoUrl, {
+          threshold: 240,  // Detect white pixels (240-255)
+          tolerance: 30,   // Remove near-white pixels too
+          quality: 1,      // Maximum quality
+        });
+
+        console.log('✅ Background removed successfully');
+
+        // Step 2: Convert base64 to File
+        const logoFile = dataURLtoFile(logoWithoutBg, `edited-logo-${Date.now()}.png`);
+        console.log('📁 Created file:', logoFile.name, '-', (logoFile.size / 1024 / 1024).toFixed(2), 'MB');
+
+        // Step 3: Upload the processed logo file
+        console.log('📤 Uploading processed logo to server...');
+        const uploadResponse = await logoUploadService.uploadLogo(businessId, logoFile);
+        finalLogoUrl = uploadResponse.selected_logo_url;
+
+        console.log('✅ Logo uploaded successfully:', finalLogoUrl);
+
+        // Update displayed logo with uploaded version
+        setLogoUrl(finalLogoUrl + '?v=' + Date.now());
+        setOriginalLogoUrl(finalLogoUrl);
+        setSelectedLogoUrl(finalLogoUrl);
+        setImageKey(prev => prev + 1);
+
+      } catch (bgError) {
+        console.error('⚠️ Background removal/upload failed, saving original logo:', bgError);
+        // Fallback: save original FAL-AI URL if upload fails
+        console.log('💾 Saving original logo URL to database:', originalLogoUrl);
+        await brandContextService.saveLogoUrl(businessId, originalLogoUrl);
+      }
+
+      setIsSaving(false);
+
+      // Step 4: Open brandbook slider with final logo
+      setShowSlider(true);
+    } catch (error: any) {
+      console.error('❌ Failed to save logo:', error);
+      setSaveError(error.message || 'Failed to save logo. Please try again.');
+      setIsSaving(false);
+    }
   };
 
   const handleCloseSlider = () => {
@@ -275,16 +350,31 @@ export default function EditLogo() {
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-center w-full max-w-[1250px] px-4">
+        <div className="flex flex-col items-center w-full max-w-[1250px] px-4 gap-3">
+          {/* Error Message */}
+          {saveError && (
+            <div className="w-full max-w-md p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 font-inter text-center">{saveError}</p>
+            </div>
+          )}
+
           <button
             onClick={handleSave}
-            className="px-12 md:px-16 py-3 rounded-xl cursor-pointer font-inter text-sm md:text-base font-semibold leading-5 tracking-normal uppercase text-white shadow-lg transition-all hover:opacity-90 w-full sm:w-auto"
+            disabled={isSaving || !originalLogoUrl}
+            className="px-12 md:px-16 py-3 rounded-xl cursor-pointer font-inter text-sm md:text-base font-semibold leading-5 tracking-normal uppercase text-white shadow-lg transition-all hover:opacity-90 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{
               background:
                 "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
             }}
           >
-            SAVE
+            {isSaving ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                SAVING...
+              </>
+            ) : (
+              'SAVE'
+            )}
           </button>
         </div>
       </div>
