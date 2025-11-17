@@ -1,12 +1,86 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Send, Loader2 } from "lucide-react";
+import { fal } from "@fal-ai/client";
 import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
+import { useLogo } from "@/contexts/LogoContext";
 
 export default function EditLogo() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { selectedLogoUrl, setSelectedLogoUrl } = useLogo();
   const [prompt, setPrompt] = useState("");
   const [showSlider, setShowSlider] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Configure fal-ai with API key
+  useEffect(() => {
+    fal.config({
+      credentials: import.meta.env.VITE_FAL_KEY
+    });
+  }, []);
+
+  // Get logo from location state or context
+  useEffect(() => {
+    const stateLogoUrl = (location.state as { logoUrl?: string })?.logoUrl;
+    if (stateLogoUrl) {
+      setLogoUrl(stateLogoUrl);
+    } else if (selectedLogoUrl) {
+      setLogoUrl(selectedLogoUrl);
+    }
+  }, [location.state, selectedLogoUrl]);
+
+  const handleRunPrompt = async () => {
+    if (!prompt.trim() || !logoUrl) {
+      setEditError("Please enter a prompt and ensure a logo is selected");
+      return;
+    }
+
+    try {
+      setIsEditing(true);
+      setEditError(null);
+      console.log('🎨 Starting logo edit with prompt:', prompt);
+
+      // Call fal-ai nano-banana/edit API
+      const result = await fal.subscribe("fal-ai/nano-banana/edit", {
+        input: {
+          prompt: prompt,
+          image_urls: [logoUrl],
+          num_images: 1,
+          aspect_ratio: "1:1",
+          output_format: "png",
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            console.log('📊 Edit progress:', update.status);
+            update.logs?.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+
+      console.log('✅ Logo edit result:', result.data);
+
+      // Update the logo with the edited version
+      if (result.data?.images?.[0]?.url) {
+        const editedLogoUrl = result.data.images[0].url;
+        setLogoUrl(editedLogoUrl);
+        setSelectedLogoUrl(editedLogoUrl); // Update context as well
+        console.log('✅ Logo updated with edited version:', editedLogoUrl);
+        setPrompt(""); // Clear prompt after successful edit
+      } else {
+        setEditError("Failed to edit logo. Please try again.");
+      }
+
+      setIsEditing(false);
+    } catch (error: any) {
+      console.error('❌ Error editing logo:', error);
+      setEditError(error.message || "Failed to edit logo. Please try again.");
+      setIsEditing(false);
+    }
+  };
 
   const handleSave = () => {
     // Open brandbook slider with edited logo
@@ -38,14 +112,31 @@ export default function EditLogo() {
         <div className="bg-white rounded-[20px] mb-8 max-w-[1250px] w-full p-4 md:p-6 lg:p-10 shadow-[0px_10px_40px_0px_rgba(143,0,255,0.15)]">
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
             {/* Left Side - Logo Preview */}
-            <div className="flex items-center justify-center bg-white rounded-[20px] border border-[#E4E4E4] shrink-0 w-full lg:w-[397px] h-[300px] md:h-[350px] lg:h-[400px]">
-              {/* Placeholder for logo - will be replaced with actual logo */}
-              <div className="text-center">
-                <div className="text-2xl font-bold mb-2">LOREM IPSUM</div>
-                <div className="text-sm text-gray-500">
-                  Logo preview will appear here
+            <div className="flex items-center justify-center bg-white rounded-[20px] border border-[#E4E4E4] shrink-0 w-full lg:w-[397px] h-[300px] md:h-[350px] lg:h-[400px] p-8 relative">
+              {isEditing && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-[20px] flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#8F00FF] animate-spin mx-auto mb-3" />
+                    <p className="font-inter text-sm font-medium text-gray-700">
+                      Editing your logo...
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Selected logo"
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="text-center">
+                  <div className="text-2xl font-bold mb-2">LOREM IPSUM</div>
+                  <div className="text-sm text-gray-500">
+                    Logo preview will appear here
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Side - AI Editor */}
@@ -65,23 +156,42 @@ export default function EditLogo() {
                   placeholder="Type your prompt here..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full h-24 md:h-32 rounded-xl border-none bg-[#F3F3F5] px-3 md:px-4 py-3 md:py-4 font-inter font-normal text-[14px] md:text-[16px] leading-[17.5px] resize-none focus:outline-none placeholder:text-gray-400"
+                  disabled={isEditing}
+                  className="w-full h-24 md:h-32 rounded-xl border-none bg-[#F3F3F5] px-3 md:px-4 py-3 md:py-4 font-inter font-normal text-[14px] md:text-[16px] leading-[17.5px] resize-none focus:outline-none placeholder:text-gray-400 disabled:opacity-50"
                 />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
                   <p className="font-inter font-normal text-[10px] md:text-[12px] leading-[17.5px] text-[#717182]">
                     The result will be reflected on left side
                   </p>
                   <button
-                    className="px-4 md:px-6 py-2 rounded-lg font-inter text-xs md:text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer transition-all hover:opacity-90 w-full sm:w-auto"
+                    onClick={handleRunPrompt}
+                    disabled={isEditing || !prompt.trim() || !logoUrl}
+                    className="px-4 md:px-6 py-2 rounded-lg font-inter text-xs md:text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer transition-all hover:opacity-90 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       background:
                         "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
                     }}
                   >
-                    <Send className="w-3 md:w-4 h-3 md:h-4" />
-                    Run Prompt
+                    {isEditing ? (
+                      <>
+                        <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin" />
+                        Editing...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 md:w-4 h-3 md:h-4" />
+                        Run Prompt
+                      </>
+                    )}
                   </button>
                 </div>
+
+                {/* Error Message */}
+                {editError && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-xs md:text-sm text-red-600 font-inter">{editError}</p>
+                  </div>
+                )}
               </div>
 
               {/* Quick Actions */}
@@ -92,25 +202,29 @@ export default function EditLogo() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleQuickAction("Make it more modern")}
-                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all"
+                    disabled={isEditing}
+                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Make it more modern
                   </button>
                   <button
                     onClick={() => handleQuickAction("Try different color")}
-                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all"
+                    disabled={isEditing}
+                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Try different color
                   </button>
                   <button
                     onClick={() => handleQuickAction("Simplify the design")}
-                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all"
+                    disabled={isEditing}
+                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-black/10 cursor-pointer bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Simplify the design
                   </button>
                   <button
                     onClick={() => handleQuickAction("Make it bolder")}
-                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border cursor-pointer border-black/10 bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all"
+                    disabled={isEditing}
+                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg border cursor-pointer border-black/10 bg-white font-inter font-medium text-[10px] md:text-[12px] leading-[100%] text-center text-[#181A2A] hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Make it bolder
                   </button>

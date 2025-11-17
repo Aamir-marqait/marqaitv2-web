@@ -152,9 +152,16 @@ export default function LogoGeneration() {
 
   const handleLogoClick = async (idx: number, isEditClick: boolean) => {
     if (isEditClick) {
-      // Navigate to edit page
+      // Navigate to edit page with selected logo data
       setSelectedLogo(idx);
-      navigate("/onboarding/edit-logo");
+      const selectedLogoUrl = logos[idx];
+      setSelectedLogoUrl(selectedLogoUrl); // Save to context as well
+      navigate("/onboarding/edit-logo", {
+        state: {
+          logoUrl: selectedLogoUrl,
+          logoIndex: idx
+        }
+      });
     } else {
       // Select logo and generate variants
       setSelectedLogo(idx);
