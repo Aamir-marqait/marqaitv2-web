@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBranding } from "@/hooks/useBranding";
 import LinearProgress from "@/components/ui/linear-progress";
 import { generateBrandbookContent } from "@/utils/generateBrandbookContent";
+import { brandContextService } from "@/api/services/brand-context";
 
 export default function ExistingBrandDetails() {
   const { brandingData, setBrandDetailsData } = useBranding();
@@ -60,6 +61,21 @@ export default function ExistingBrandDetails() {
         // Store NEW content in localStorage (replaces any old content)
         localStorage.setItem('brandbookContent', JSON.stringify(content));
         console.log('✅ NEW brandbook content generated and stored in localStorage (Existing Brand)');
+
+        // Save LLM data to backend in parallel (non-blocking)
+        const businessId = brandContextService.getBusinessId();
+        if (businessId) {
+          brandContextService.saveLLMData(businessId, content)
+            .then(() => {
+              console.log('✅ LLM data synced to backend');
+            })
+            .catch((error) => {
+              console.error('❌ Failed to sync LLM data to backend:', error);
+              // Silent fail - doesn't affect user flow
+            });
+        } else {
+          console.warn('⚠️ No business_id found, skipping LLM data sync to backend');
+        }
       }).catch((error) => {
         console.error('❌ Failed to generate brandbook content:', error);
         // Continue flow even if generation fails
