@@ -128,7 +128,7 @@ export default function ColorPaletteSlide({
               marginBottom: "32px",
             }}
           >
-            {selectedColor.shades.map((shade, idx) => (
+            {selectedColor.shades.map((shade: any, idx: number) => (
               <div
                 key={idx}
                 style={{
@@ -160,7 +160,7 @@ export default function ColorPaletteSlide({
             </div>
 
             {/* Color Values Columns */}
-            {selectedColor.shades.map((shade, idx) => (
+            {selectedColor.shades.map((shade: any, idx: number) => (
               <div key={idx} style={{ display: "flex", flexDirection: "column", gap: "16px", paddingTop: "8px" }}>
                 <div style={{ fontSize: "15px", color: "#6B7280", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
                   {shade.hex}

@@ -4,3 +4,5 @@ export * from './credits';
 export * from './subscription';
 export * from './brand-context';
 export * from './logo-upload';
+export * from './six-logos';
+export * from './media-gallery';

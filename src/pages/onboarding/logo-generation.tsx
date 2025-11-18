@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react";
 import { fal } from "@fal-ai/client";
 import LinearProgress from "@/components/ui/linear-progress";
-import logoPlaceholder from "@/assets/logo.png";
 import BrandbookSlider from "@/components/onboarding/BrandbookSlider";
 import LogoVariantsLoadingScreen from "@/components/onboarding/LogoVariantsLoadingScreen";
 import { useLogo } from "@/contexts/LogoContext";
+import { useBranding } from "@/hooks/useBranding";
+import { brandContextService } from "@/api/services/brand-context";
+import { removeWhiteBackground, dataURLtoBlob } from "@/utils/removeBackground";
 
 export default function LogoGeneration() {
   const [selectedLogo, setSelectedLogo] = useState<number | null>(null);
@@ -22,8 +24,10 @@ export default function LogoGeneration() {
     lightRedBg: string;
     yellowBg: string;
   } | null>(null);
+  const [logoError, setLogoError] = useState(false);
   const navigate = useNavigate();
   const { setSelectedLogoUrl } = useLogo();
+  const { brandingData } = useBranding();
 
   // Configure fal-ai with API key
   useEffect(() => {
@@ -33,20 +37,23 @@ export default function LogoGeneration() {
   }, []);
 
   useEffect(() => {
-    // Simulate API call to generate logos
-    setTimeout(() => {
-      // Mock logo URLs - replace with actual API response
-      setLogos([
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-        logoPlaceholder,
-      ]);
+    // Check if logo URLs are available from BrandingContext
+    const generatedLogoUrls = brandingData.logo.generatedLogoUrls;
+
+    if (generatedLogoUrls && generatedLogoUrls.length === 6) {
+      console.log('✅ Using generated logo URLs from API:', generatedLogoUrls);
+      setLogos(generatedLogoUrls);
       setLoading(false);
-    }, 3000);
-  }, []);
+      setLogoError(false);
+    } else if (generatedLogoUrls && generatedLogoUrls.length === 0) {
+      // API failed - no logos generated
+      console.log('❌ Logo generation failed');
+      setLoading(false);
+      setLogoError(true);
+    }
+    // If generatedLogoUrls is undefined/null, keep showing skeleton loader
+    // (API call still in progress)
+  }, [brandingData.logo.generatedLogoUrls]);
 
   const generateLogoVariants = async (logoUrl: string) => {
     try {
@@ -143,21 +150,87 @@ export default function LogoGeneration() {
     }
   };
 
-  const handleLogoClick = (idx: number, isEditClick: boolean) => {
+  const handleLogoClick = async (idx: number, isEditClick: boolean) => {
     if (isEditClick) {
-      // Navigate to edit page
+      // Navigate to edit page with selected logo data
       setSelectedLogo(idx);
-      navigate("/onboarding/edit-logo");
+      const selectedLogoUrl = logos[idx];
+      setSelectedLogoUrl(selectedLogoUrl); // Save to context as well
+      navigate("/onboarding/edit-logo", {
+        state: {
+          logoUrl: selectedLogoUrl,
+          logoIndex: idx
+        }
+      });
     } else {
       // Select logo and generate variants
       setSelectedLogo(idx);
       const selectedLogoUrl = logos[idx];
-      setSelectedLogoUrl(selectedLogoUrl); // Store in context for consistency
 
-      // Generate variants before opening slider
-      // NOTE: Currently fails with ValidationError because logos[idx] is local path
-      // Will work when logo API provides publicly accessible URLs
-      generateLogoVariants(selectedLogoUrl);
+      try {
+        console.log('🎨 Removing white background from logo...');
+        setGeneratingVariants(true);
+        setVariantsProgress(10);
+
+        // Step 1: Remove white background from the selected logo
+        const logoWithoutBg = await removeWhiteBackground(selectedLogoUrl, {
+          threshold: 240,  // Detect white pixels (240-255)
+          tolerance: 30,   // Remove near-white pixels too
+          quality: 1,      // Maximum quality
+        });
+
+        console.log('✅ Background removed successfully');
+        setVariantsProgress(25);
+
+        // Store the processed logo URL in context
+        setSelectedLogoUrl(logoWithoutBg);
+
+        // Step 2: Save processed logo URL to backend
+        const businessId = brandingData.businessId || localStorage.getItem('business_id');
+        if (businessId) {
+          try {
+            console.log('💾 Saving processed logo (transparent background) to business profile...');
+
+            // Convert base64 to blob for upload
+            const blob = dataURLtoBlob(logoWithoutBg);
+            const formData = new FormData();
+            formData.append('logo', blob, `logo-${Date.now()}.png`);
+
+            // TODO: Update this when you have an upload endpoint
+            // For now, we'll save the data URL directly
+            await brandContextService.saveLogoUrl(businessId, logoWithoutBg);
+
+            console.log('✅ Processed logo saved to database');
+          } catch (error) {
+            console.error('❌ Failed to save logo URL:', error);
+            // Continue flow even if save fails
+          }
+        }
+
+        setVariantsProgress(40);
+
+        // Step 3: Generate variants with the transparent background logo
+        console.log('🎨 Generating logo variants with transparent background...');
+        await generateLogoVariants(logoWithoutBg);
+
+      } catch (error) {
+        console.error('❌ Error processing logo:', error);
+        // Fallback: use original logo if background removal fails
+        setSelectedLogoUrl(selectedLogoUrl);
+
+        // Save original logo to backend
+        const businessId = brandingData.businessId || localStorage.getItem('business_id');
+        if (businessId) {
+          try {
+            await brandContextService.saveLogoUrl(businessId, selectedLogoUrl);
+          } catch (err) {
+            console.error('❌ Failed to save logo URL:', err);
+          }
+        }
+
+        // Continue with original logo
+        generateLogoVariants(selectedLogoUrl);
+      }
     }
   };
 
@@ -199,6 +272,27 @@ export default function LogoGeneration() {
                 >
                   {/* Skeleton for logo */}
                   <div className="w-full h-full bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" />
+                </div>
+              ))
+            : logoError
+            ? // Error State - Something went wrong
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-[20px] overflow-hidden flex items-center justify-center"
+                  style={{
+                    boxShadow: "0px 4px 12px 0px #00000010",
+                    height: "200px",
+                  }}
+                >
+                  <div className="text-center px-4">
+                    <p className="font-inter text-sm font-semibold text-red-500 mb-2">
+                      Something went wrong
+                    </p>
+                    <p className="font-inter text-xs text-gray-500">
+                      Failed to generate logo
+                    </p>
+                  </div>
                 </div>
               ))
             : // Actual Logos

@@ -174,7 +174,7 @@ export default function TypographySlide({
                 Available Weights
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {typography.heading.weights.map((weight, idx) => (
+                {typography.heading.weights.map((weight: string, idx: number) => (
                   <p
                     key={idx}
                     style={{
@@ -349,7 +349,7 @@ export default function TypographySlide({
                 Available Weights
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {typography.body.weights.map((weight, idx) => (
+                {typography.body.weights.map((weight: string, idx: number) => (
                   <p
                     key={idx}
                     style={{

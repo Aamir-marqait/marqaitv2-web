@@ -1,17 +1,3 @@
-/**
- * Generate dynamic brandbook content using GPT-4o with DuckDuckGo web search
- *
- * This function takes brand information and generates:
- * - Primary & Secondary Color Palettes
- * - Typography Guidelines
- * - Brand Voice & Tone
- * - Visual Style Guide
- * - Usage Examples
- * - Brand Value, Vision, Mission & Story
- *
- * Uses DuckDuckGo (free, no API key) to research industry trends before generation
- */
-
 interface BrandInput {
   businessName: string;
   industry: string;
@@ -20,9 +6,6 @@ interface BrandInput {
   coreValues: string;
 }
 
-/**
- * Search DuckDuckGo for industry-specific information
- */
 async function searchDuckDuckGo(query: string): Promise<string> {
   try {
     const response = await fetch(

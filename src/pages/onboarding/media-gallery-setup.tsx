@@ -3,24 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import LinearProgress from "@/components/ui/linear-progress";
 import { useMediaGallery } from "@/hooks/useMediaGallery";
+import { useBranding } from "@/hooks/useBranding";
 import type { MediaFolder } from "@/contexts/MediaGalleryContext";
+import { mediaGalleryService } from "@/api/services/media-gallery";
 import uploadIcon from "@/assets/upload.png";
 import imgIcon from "@/assets/img.png";
 
 const folders: { id: MediaFolder; label: string }[] = [
-  { id: "products", label: "Products" },
-  { id: "venue", label: "Venue" },
-  { id: "team", label: "Team" },
-  { id: "events", label: "Events" },
+  { id: "Products", label: "Products" },
+  { id: "Venue", label: "Venue" },
+  { id: "Team", label: "Team" },
+  { id: "Events", label: "Events" },
+  { id: "Other", label: "Other" },
 ];
 
 export default function MediaGallerySetup() {
   const navigate = useNavigate();
-  const [selectedFolder, setSelectedFolder] = useState<MediaFolder>("products");
+  const [selectedFolder, setSelectedFolder] = useState<MediaFolder>("Products");
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { mediaByFolder, addMedia, removeMedia, getMediaForFolder } =
+  const { brandingData } = useBranding();
+  const { mediaByFolder, addMedia, updateMediaIds, removeMedia, getMediaForFolder } =
     useMediaGallery();
   const currentFolderMedia = getMediaForFolder(selectedFolder);
 
@@ -29,15 +34,24 @@ export default function MediaGallerySetup() {
   };
 
   const handleSkip = () => {
+    // Clear media gallery IDs from localStorage
+    localStorage.removeItem('media_gallery_ids');
+    console.log('🧹 Cleared media gallery IDs from localStorage');
+
     navigate("/onboarding/complete");
   };
 
   const handleContinue = () => {
     console.log("Completed onboarding with media:", mediaByFolder);
+
+    // Clear media gallery IDs from localStorage
+    localStorage.removeItem('media_gallery_ids');
+    console.log('🧹 Cleared media gallery IDs from localStorage');
+
     navigate("/onboarding/complete");
   };
 
-  const handleFileSelect = (files: FileList | null) => {
+  const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     const validFiles = Array.from(files).filter((file) => {
@@ -49,8 +63,109 @@ export default function MediaGallerySetup() {
       return isValid || isValidExtension;
     });
 
-    if (validFiles.length > 0) {
-      addMedia(selectedFolder, validFiles);
+    if (validFiles.length === 0) return;
+
+    // Limit to 10 files
+    if (validFiles.length > 10) {
+      alert('Maximum 10 files allowed per upload');
+      return;
+    }
+
+    // Validate each file
+    for (const file of validFiles) {
+      const error = mediaGalleryService.validateMediaFile(file);
+      if (error) {
+        alert(error);
+        return;
+      }
+    }
+
+    // Store timestamp for mapping uploaded media IDs
+    const uploadTimestamp = Date.now();
+
+    // Add to local state immediately for preview
+    addMedia(selectedFolder, validFiles);
+
+    // Upload to backend
+    const businessId = brandingData.businessId || localStorage.getItem('business_id');
+    if (!businessId) {
+      console.error('❌ No business_id found');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      console.log(`📤 Uploading ${validFiles.length} file(s) to ${selectedFolder}...`);
+
+      const response = await mediaGalleryService.uploadBulk(
+        businessId,
+        validFiles,
+        selectedFolder
+      );
+
+      console.log('📦 Upload response:', response);
+      console.log(`✅ Successfully uploaded ${response.total_uploaded} file(s)`);
+
+      // Map local IDs to backend media IDs and store in localStorage
+      if (response.successful_uploads && response.successful_uploads.length > 0) {
+        const localIdToMediaId: Record<string, string> = {};
+        const currentMedia = getMediaForFolder(selectedFolder);
+
+        console.log('🔍 Upload timestamp:', new Date(uploadTimestamp).toISOString());
+        console.log('🔍 Current media in folder:', currentMedia.map(m => ({
+          id: m.id,
+          filename: m.file.name,
+          uploadedAt: m.uploadedAt.toISOString(),
+          uploadedAtTimestamp: m.uploadedAt.getTime()
+        })));
+
+        // Match uploaded media to local files by timestamp (files added just before upload)
+        const recentMedia = currentMedia.filter(m => {
+          const isRecent = m.uploadedAt.getTime() >= uploadTimestamp;
+          console.log(`🔍 Checking ${m.file.name}: ${m.uploadedAt.getTime()} >= ${uploadTimestamp} = ${isRecent}`);
+          return isRecent;
+        });
+
+        console.log('🔍 Recent media count:', recentMedia.length);
+        console.log('🔍 Successful uploads count:', response.successful_uploads.length);
+
+        response.successful_uploads.forEach((uploadedMedia, index) => {
+          console.log(`🔍 Backend upload [${index}]:`, uploadedMedia.filename, uploadedMedia.id);
+          if (recentMedia[index]) {
+            console.log(`🔍 Local media [${index}]:`, recentMedia[index].file.name, recentMedia[index].id);
+            localIdToMediaId[recentMedia[index].id] = uploadedMedia.id;
+            console.log(`✅ Mapped: ${recentMedia[index].id} → ${uploadedMedia.id}`);
+          } else {
+            console.warn(`⚠️ No local media found at index ${index}`);
+          }
+        });
+
+        console.log('🔍 Final localIdToMediaId mapping:', localIdToMediaId);
+
+        // Update context state
+        updateMediaIds(selectedFolder, localIdToMediaId);
+
+        // Store in localStorage for deletion
+        const storageKey = 'media_gallery_ids';
+        const existingData = localStorage.getItem(storageKey);
+        const mediaIds = existingData ? JSON.parse(existingData) : {};
+
+        // Merge new IDs with existing ones
+        Object.assign(mediaIds, localIdToMediaId);
+        localStorage.setItem(storageKey, JSON.stringify(mediaIds));
+
+        console.log('💾 Saved media IDs to localStorage:', mediaIds);
+      }
+
+      if (response.failed_uploads && response.failed_uploads.length > 0) {
+        console.error('❌ Failed uploads:', response.failed_uploads);
+        alert(`${response.total_failed} file(s) failed to upload`);
+      }
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      alert('Failed to upload files. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -70,8 +185,51 @@ export default function MediaGallerySetup() {
     handleFileSelect(e.dataTransfer.files);
   };
 
-  const handleRemoveMedia = (fileId: string) => {
+  const handleRemoveMedia = async (fileId: string, mediaId?: string) => {
+    console.log('🗑️ Removing media - fileId:', fileId, 'mediaId from context:', mediaId);
+
+    // Try to get mediaId from localStorage if not in context
+    let backendMediaId = mediaId;
+    if (!backendMediaId) {
+      const storageKey = 'media_gallery_ids';
+      const existingData = localStorage.getItem(storageKey);
+      if (existingData) {
+        const mediaIds = JSON.parse(existingData);
+        backendMediaId = mediaIds[fileId];
+        console.log('🔍 Found mediaId in localStorage:', backendMediaId);
+      }
+    }
+
+    // Remove from local state
     removeMedia(selectedFolder, fileId);
+
+    // Delete from backend if mediaId exists
+    if (backendMediaId) {
+      const businessId = brandingData.businessId || localStorage.getItem('business_id');
+      if (businessId) {
+        try {
+          console.log('🗑️ Deleting media from backend - businessId:', businessId, 'mediaId:', backendMediaId);
+          await mediaGalleryService.deleteMedia(businessId, backendMediaId);
+          console.log('✅ Media deleted from backend');
+
+          // Remove from localStorage
+          const storageKey = 'media_gallery_ids';
+          const existingData = localStorage.getItem(storageKey);
+          if (existingData) {
+            const mediaIds = JSON.parse(existingData);
+            delete mediaIds[fileId];
+            localStorage.setItem(storageKey, JSON.stringify(mediaIds));
+            console.log('💾 Removed media ID from localStorage');
+          }
+        } catch (error) {
+          console.error('❌ Failed to delete media:', error);
+        }
+      } else {
+        console.warn('⚠️ No business_id found for delete operation');
+      }
+    } else {
+      console.warn('⚠️ No mediaId found - file was not uploaded to backend yet');
+    }
   };
 
   return (
@@ -115,11 +273,13 @@ export default function MediaGallerySetup() {
           <div className="flex-1 bg-white rounded-[20px] p-8 shadow-[0px_10px_40px_0px_rgba(143,0,255,0.15)]">
             {/* Upload Zone */}
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-2xl p-12 mb-6 transition-all cursor-pointer ${
+              className={`relative border-2 border-dashed rounded-2xl p-12 mb-6 transition-all ${
+                isUploading ? "cursor-wait opacity-60" : "cursor-pointer"
+              } ${
                 isDragging
                   ? "border-[#8F00FF] bg-[#F3E8FF]"
                   : "border-[#D9D9D9] bg-white"
@@ -144,18 +304,26 @@ export default function MediaGallerySetup() {
                 </div>
 
                 {/* Upload Text */}
-                <p className="font-inter text-[16px] leading-[100%] tracking-[0%] mb-2">
-                  <span className="font-medium text-[#8F00FF] underline">
-                    Choose a File
-                  </span>
-                  <span className="font-normal text-[#6B7280]"> Or </span>
-                  <span className="font-medium text-[#11001E]">
-                    Drag & Drop
-                  </span>
-                </p>
-                <p className="font-inter text-[12px] font-normal leading-[100%] tracking-[0%] text-center text-[#6B7280]">
-                  Supported files: PDF, JPG, PNG
-                </p>
+                {isUploading ? (
+                  <p className="font-inter text-[16px] font-semibold leading-[100%] tracking-[0%] mb-2 text-[#8F00FF]">
+                    Uploading...
+                  </p>
+                ) : (
+                  <>
+                    <p className="font-inter text-[16px] leading-[100%] tracking-[0%] mb-2">
+                      <span className="font-medium text-[#8F00FF] underline">
+                        Choose a File
+                      </span>
+                      <span className="font-normal text-[#6B7280]"> Or </span>
+                      <span className="font-medium text-[#11001E]">
+                        Drag & Drop
+                      </span>
+                    </p>
+                    <p className="font-inter text-[12px] font-normal leading-[100%] tracking-[0%] text-center text-[#6B7280]">
+                      Max 10 files | Images: 30MB | Videos: 500MB
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -172,7 +340,7 @@ export default function MediaGallerySetup() {
                       />
                     </div>
                     <button
-                      onClick={() => handleRemoveMedia(media.id)}
+                      onClick={() => handleRemoveMedia(media.id, media.mediaId)}
                       className="w-8 h-8 mt-2 cursor-pointer rounded-md bg-[#FEF2F2] p-1.5 flex items-center justify-center shadow-[0px_1px_2px_0px_rgba(0,0,0,0.08),0px_2px_6px_0px_rgba(0,0,0,0.04)] hover:bg-red-50 transition-colors"
                     >
                       <Trash2 className="w-5 h-5 text-red-500" />
