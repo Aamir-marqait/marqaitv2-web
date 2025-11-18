@@ -1,16 +1,8 @@
-/**
- * Remove white background from logo image using Canvas API
- *
- * This utility detects white or near-white pixels and makes them transparent
- * Returns a PNG image with transparent background as a base64 data URL
- */
+
 
 interface RemoveBackgroundOptions {
-  /** Threshold for white detection (0-255). Lower = more strict white detection. Default: 240 */
   threshold?: number;
-  /** Tolerance for color matching. Higher = more pixels removed. Default: 30 */
   tolerance?: number;
-  /** Output image quality (0-1). Default: 1 */
   quality?: number;
 }
 
@@ -32,7 +24,6 @@ export async function removeWhiteBackground(
 
   return new Promise((resolve, reject) => {
     try {
-      // Create a canvas element
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
@@ -41,7 +32,6 @@ export async function removeWhiteBackground(
         return;
       }
 
-      // Load the image
       const img = new Image();
       img.crossOrigin = 'anonymous'; // Enable CORS for external images
 
@@ -81,10 +71,8 @@ export async function removeWhiteBackground(
             }
           }
 
-          // Put modified image data back to canvas
           ctx.putImageData(imageData, 0, 0);
 
-          // Convert canvas to base64 PNG data URL
           const dataUrl = canvas.toDataURL('image/png', quality);
 
           console.log('✅ Background removed successfully');
@@ -100,7 +88,6 @@ export async function removeWhiteBackground(
         reject(new Error('Failed to load image'));
       };
 
-      // Start loading the image
       img.src = imageUrl;
     } catch (error) {
       console.error('❌ Error in removeWhiteBackground:', error);
@@ -109,11 +96,6 @@ export async function removeWhiteBackground(
   });
 }
 
-/**
- * Upload processed logo to a backend endpoint
- * This converts the base64 data URL to a File and uploads it
- * Returns the new URL from the server
- */
 export async function uploadProcessedLogo(
   dataUrl: string,
   filename: string,
@@ -141,10 +123,6 @@ export async function uploadProcessedLogo(
   }
 }
 
-/**
- * Convert base64 data URL to Blob
- * Useful for uploading the processed image to backend
- */
 export function dataURLtoBlob(dataUrl: string): Blob {
   const arr = dataUrl.split(',');
   const mimeMatch = arr[0].match(/:(.*?);/);
@@ -160,10 +138,6 @@ export function dataURLtoBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-/**
- * Convert base64 data URL to File
- * Useful for form submissions
- */
 export function dataURLtoFile(dataUrl: string, filename: string): File {
   const blob = dataURLtoBlob(dataUrl);
   return new File([blob], filename, { type: blob.type });
