@@ -33,9 +33,8 @@ export default function WelcomeChat() {
 
   const handleSend = () => {
     if (message.trim()) {
-      // TODO: Handle sending message
-      console.log("Sending message:", message);
-      setMessage("");
+      // Navigate to strategy creation chat with the message
+      navigate("/strategy-creation-chat", { state: { initialMessage: message } });
     }
   };
 
