@@ -31,8 +31,11 @@ axiosInstance.interceptors.response.use(
     // Skip token refresh for brand-context endpoint to avoid double calls
     const isBrandContextEndpoint = originalRequest.url?.includes('/brand-context');
 
-    // If error is 401 and we haven't retried yet and it's not brand-context endpoint
-    if (error.response?.status === 401 && !originalRequest._retry && !isBrandContextEndpoint) {
+    // Skip token refresh for auth endpoints (login, signup, etc.)
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+
+    // If error is 401 and we haven't retried yet and it's not brand-context or auth endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !isBrandContextEndpoint && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {
