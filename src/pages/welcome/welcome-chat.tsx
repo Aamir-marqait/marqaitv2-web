@@ -12,6 +12,13 @@ export default function WelcomeChat() {
   // Extract first name from user name
   const firstName = user?.name?.split(" ")[0] || "there";
 
+  // Get current time
+  const currentTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
   const quickActions = [
     { text: "Yes!" },
     { text: "Tell me more" },
@@ -33,8 +40,8 @@ export default function WelcomeChat() {
   };
 
   const handleQuickAction = (action: string) => {
-    // TODO: Handle quick action click
-    console.log("Quick action clicked:", action);
+    // Set the message to the quick action text
+    setMessage(action);
   };
 
   const handleExploreLink = (href: string) => {
@@ -48,7 +55,7 @@ export default function WelcomeChat() {
         background: "linear-gradient(180deg, #F3E8FF 0%, #FFFFFF 100%)",
       }}
     >
-      <div className="w-full max-w-[1100px]">
+      <div className="w-full max-w-[800px]">
         {/* Logo and Welcome Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
@@ -72,8 +79,8 @@ export default function WelcomeChat() {
           {/* AI Message */}
           <div className="mb-6">
             <div className="flex items-start gap-3 mb-4">
-              <div className="shrink-0">
-                <img src={logo} alt="Marqait AI" className="h-6 w-6" />
+              <div className="shrink-0 w-6 h-6 rounded-full bg-[#E6D4FF] flex items-center justify-center">
+                <img src={logo} alt="Marqait AI" className="w-3 h-3 object-contain" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -81,7 +88,7 @@ export default function WelcomeChat() {
                     MARQAIT AI
                   </span>
                   <span className="font-inter text-xs text-gray-400">
-                    4:33 PM
+                    {currentTime}
                   </span>
                 </div>
                 <div className="font-inter text-sm text-gray-700">
