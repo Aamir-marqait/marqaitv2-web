@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
-import { Send, Sparkles } from "lucide-react";
+import { Send } from "lucide-react";
 import logo from "@/assets/app-logo/logo.png";
+import star from "@/assets/star.png";
 
 interface Message {
   id: string;
@@ -127,13 +128,13 @@ export default function StrategyCreationChat() {
           {/* Header */}
           <div className="flex flex-col items-center pt-4 pb-6">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-[#8F00FF]" />
-              <h1 className="font-inter text-[32px] md:text-[40px] font-bold text-[#8F00FF]">
+              <img src={star} alt="Star" className="w-10 h-10" />
+              <h1 className="font-inter text-[48px] font-semibold leading-[100%] tracking-[0%] align-middle text-[#8F00FF]">
                 Marqait A.I
               </h1>
-              <Sparkles className="w-6 h-6 text-[#8F00FF]" />
+              <img src={star} alt="Star" className="w-10 h-10" />
             </div>
-            <p className="font-inter text-sm text-gray-600">Your AI Marketing Assistant</p>
+            <p className="font-inter text-[16px] font-normal leading-[100%] tracking-[0%] align-middle text-[#3B3C4A]">Your AI Marketing Assistant</p>
           </div>
 
           {/* Chat Messages */}
@@ -146,7 +147,7 @@ export default function StrategyCreationChat() {
                     <img src={logo} alt="AI" className="w-4 h-4 object-contain" />
                   </div>
                   <div className="flex-1">
-                    <div className="bg-[#F3E8FF] rounded-2xl rounded-tl-none px-5 py-4 max-w-[600px]">
+                    <div className="bg-[#f8edff] rounded-2xl rounded-tl-none px-5 py-4 max-w-[600px]">
                       <p className="font-inter text-sm text-gray-800 leading-relaxed">
                         {msg.content}
                       </p>
@@ -174,11 +175,7 @@ export default function StrategyCreationChat() {
                   <div className="flex items-start gap-3 max-w-[600px]">
                     <div className="flex-1">
                       <div
-                        className="rounded-2xl rounded-tr-none px-5 py-4 text-white"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #A855F7 0%, #8F00FF 100%)",
-                        }}
+                        className="rounded-2xl rounded-tr-none px-5 py-4 text-white bg-[#a633ff]"
                       >
                         <p className="font-inter text-sm leading-relaxed">{msg.content}</p>
                       </div>
