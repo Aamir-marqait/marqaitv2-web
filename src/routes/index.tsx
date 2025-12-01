@@ -25,6 +25,7 @@ import MediaGallerySetup from '@/pages/onboarding/media-gallery-setup';
 import OnboardingComplete from '@/pages/onboarding/onboarding-complete';
 import WelcomeChat from '@/pages/welcome/welcome-chat';
 import StrategyCreationChat from '@/pages/welcome/strategy-creation-chat';
+import ContentCalendar from '@/pages/content-calendar';
 import MainLayout from '@/components/layouts/MainLayout';
 
 export default function AppRoutes() {
@@ -215,6 +216,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <StrategyCreationChat />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/content-calendar"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ContentCalendar />
             </MainLayout>
           </ProtectedRoute>
         }
