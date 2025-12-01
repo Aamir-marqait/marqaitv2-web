@@ -1,16 +1,17 @@
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  MessageCircle,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import ContentDetailModal from "@/components/content-calendar/ContentDetailModal";
 
 interface ContentItem {
   id: string;
   platform: "instagram-post" | "instagram-reel" | "facebook-post";
   label: string;
+  topic?: string;
+  caption?: string;
+  visual?: string;
+  hashtags?: string;
+  time?: string;
+  date?: string;
 }
 
 interface CalendarDay {
@@ -24,8 +25,11 @@ interface CalendarDay {
 export default function ContentCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date(2025, 10)); // Nov 2025
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
-  const [platformFilter, setPlatformFilter] = useState("All Platforms");
-  const [showChat, setShowChat] = useState(true);
+  const [platformFilter] = useState("All Platforms");
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
+    null
+  );
+  const [showModal, setShowModal] = useState(false);
 
   // Platform configurations with colors
   const platformConfig = {
@@ -49,47 +53,270 @@ export default function ContentCalendar() {
   // Sample content data matching the screenshot
   const contentData: Record<string, ContentItem[]> = {
     "30-10-2025": [
-      { id: "1", platform: "instagram-post", label: "Insta - Post" },
-      { id: "2", platform: "instagram-reel", label: "Insta - Reel" },
+      {
+        id: "1",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Monthly Promotion",
+        caption: "Check out our amazing deals this month!",
+        visual: "Promotional banner with brand colors",
+        hashtags: "#MonthlyDeal #Shopping #Sale",
+        time: "3:30 P.M",
+        date: "October 30 - Monday",
+      },
+      {
+        id: "2",
+        platform: "instagram-reel",
+        label: "Insta - Reel",
+        topic: "Behind the Scenes",
+        caption: "See how we create magic! ✨",
+        visual: "Time-lapse video of product creation",
+        hashtags: "#BehindTheScenes #Process #Creative",
+        time: "5:00 P.M",
+        date: "October 30 - Monday",
+      },
     ],
-    "1-11-2025": [{ id: "3", platform: "facebook-post", label: "FB - Post" }],
+    "1-11-2025": [
+      {
+        id: "3",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "November Kickoff",
+        caption: "Starting November strong! 💪",
+        visual: "Motivational graphic",
+        hashtags: "#NewMonth #Goals #November",
+        time: "9:00 A.M",
+        date: "November 1 - Wednesday",
+      },
+    ],
     "2-11-2025": [
-      { id: "4", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "4",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Product Feature",
+        caption: "Discover our latest product! 🎉",
+        visual: "Product photography with clean background",
+        hashtags: "#NewProduct #Launch #Innovation",
+        time: "2:00 P.M",
+        date: "November 2 - Thursday",
+      },
     ],
-    "3-11-2025": [{ id: "5", platform: "facebook-post", label: "FB - Post" }],
-    "8-11-2025": [{ id: "6", platform: "facebook-post", label: "FB - Post" }],
+    "3-11-2025": [
+      {
+        id: "5",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "Weekend Prep",
+        caption: "Getting ready for the weekend! 🎊",
+        visual: "Weekend special offers graphic",
+        hashtags: "#Weekend #Friday #Fun",
+        time: "4:00 P.M",
+        date: "November 3 - Friday",
+      },
+    ],
+    "8-11-2025": [
+      {
+        id: "6",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "Weekly Tips",
+        caption: "Here's our top tip for this week! 💡",
+        visual: "Infographic with tips",
+        hashtags: "#Tips #Advice #HelpfulHints",
+        time: "10:00 A.M",
+        date: "November 8 - Wednesday",
+      },
+    ],
     "9-11-2025": [
-      { id: "7", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "7",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Thursday Special Offer",
+        caption:
+          "THURSDAY TREAT! 🎉 Order catering for November and get 15% off dessert add-ons! Perfect for holiday parties. Offer valid through Nov 30. Book now! 🍰",
+        visual: "Promotional graphic with desserts and offer details",
+        hashtags: "#SpecialOffer #CateringDeal #HolidayParty #November",
+        time: "7:30 P.M",
+        date: "November 9 - Thursday",
+      },
     ],
     "10-11-2025": [
-      { id: "8", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "8",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Customer Spotlight",
+        caption: "Featuring our amazing customers! ❤️",
+        visual: "User-generated content collage",
+        hashtags: "#CustomerLove #Community #Grateful",
+        time: "1:00 P.M",
+        date: "November 10 - Friday",
+      },
     ],
     "30-11-2025": [
-      { id: "9", platform: "instagram-post", label: "Insta - Post" },
-      { id: "10", platform: "instagram-reel", label: "Insta - Reel" },
+      {
+        id: "9",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "End of November",
+        caption: "Wrapping up an amazing month! 🌟",
+        visual: "Monthly recap graphic",
+        hashtags: "#November #MonthlyRecap #Gratitude",
+        time: "6:00 P.M",
+        date: "November 30 - Saturday",
+      },
+      {
+        id: "10",
+        platform: "instagram-reel",
+        label: "Insta - Reel",
+        topic: "Month Highlights",
+        caption: "November highlights reel! 🎬",
+        visual: "Video montage of best moments",
+        hashtags: "#Highlights #BestOf #November",
+        time: "8:00 P.M",
+        date: "November 30 - Saturday",
+      },
     ],
     "10-11-2025-2": [
-      { id: "11", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "11",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Midweek Motivation",
+        caption: "Keep pushing forward! 💪",
+        visual: "Motivational quote graphic",
+        hashtags: "#Motivation #Inspiration #KeepGoing",
+        time: "11:00 A.M",
+        date: "November 10 - Friday",
+      },
     ],
     "15-11-2025": [
-      { id: "12", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "12",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Team Feature",
+        caption: "Meet our incredible team! 👥",
+        visual: "Team photo with fun layout",
+        hashtags: "#TeamSpotlight #MeetTheTeam #WeAreFamily",
+        time: "3:00 P.M",
+        date: "November 15 - Wednesday",
+      },
     ],
     "30-11-2025-2": [
-      { id: "13", platform: "instagram-post", label: "Insta - Post" },
-      { id: "14", platform: "instagram-reel", label: "Insta - Reel" },
+      {
+        id: "13",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Sunday Vibes",
+        caption: "Relaxing into the weekend! ☀️",
+        visual: "Lifestyle imagery",
+        hashtags: "#SundayVibes #Relaxation #WeekendMode",
+        time: "12:00 P.M",
+        date: "November 30 - Saturday",
+      },
+      {
+        id: "14",
+        platform: "instagram-reel",
+        label: "Insta - Reel",
+        topic: "Quick Tutorial",
+        caption: "Learn this in 60 seconds! ⏱️",
+        visual: "Fast-paced tutorial video",
+        hashtags: "#Tutorial #HowTo #QuickTips",
+        time: "4:30 P.M",
+        date: "November 30 - Saturday",
+      },
     ],
-    "22-11-2025": [{ id: "15", platform: "facebook-post", label: "FB - Post" }],
+    "22-11-2025": [
+      {
+        id: "15",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "Event Announcement",
+        caption: "Mark your calendars! 📅",
+        visual: "Event promotional poster",
+        hashtags: "#Event #SaveTheDate #Community",
+        time: "2:30 P.M",
+        date: "November 22 - Wednesday",
+      },
+    ],
     "23-11-2025": [
-      { id: "16", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "16",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Testimonial",
+        caption: "Hear what our customers say! 💬",
+        visual: "Customer testimonial graphic",
+        hashtags: "#Testimonial #CustomerReview #FiveStars",
+        time: "5:30 P.M",
+        date: "November 23 - Thursday",
+      },
     ],
-    "24-11-2025": [{ id: "17", platform: "facebook-post", label: "FB - Post" }],
-    "27-11-2025": [{ id: "18", platform: "facebook-post", label: "FB - Post" }],
+    "24-11-2025": [
+      {
+        id: "17",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "Industry News",
+        caption: "Latest trends in our industry! 📰",
+        visual: "News-style graphic with key points",
+        hashtags: "#IndustryNews #Trends #StayInformed",
+        time: "9:30 A.M",
+        date: "November 24 - Friday",
+      },
+    ],
+    "27-11-2025": [
+      {
+        id: "18",
+        platform: "facebook-post",
+        label: "FB - Post",
+        topic: "Throwback",
+        caption: "Throwback to when we started! 📸",
+        visual: "Vintage photo with then-and-now comparison",
+        hashtags: "#ThrowbackThursday #Memory #Journey",
+        time: "1:30 P.M",
+        date: "November 27 - Monday",
+      },
+    ],
     "30-11-2025-3": [
-      { id: "19", platform: "instagram-post", label: "Insta - Post" },
-      { id: "20", platform: "instagram-reel", label: "Insta - Reel" },
+      {
+        id: "19",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Last Call",
+        caption: "Last chance for November deals! ⏰",
+        visual: "Urgency-driven promotional graphic",
+        hashtags: "#LastChance #LimitedTime #DontMissOut",
+        time: "7:00 P.M",
+        date: "November 30 - Saturday",
+      },
+      {
+        id: "20",
+        platform: "instagram-reel",
+        label: "Insta - Reel",
+        topic: "Sneak Peek",
+        caption: "Sneak peek of what's coming! 👀",
+        visual: "Teaser video for upcoming launch",
+        hashtags: "#SneakPeek #ComingSoon #Excited",
+        time: "9:00 P.M",
+        date: "November 30 - Saturday",
+      },
     ],
     "31-11-2025": [
-      { id: "21", platform: "instagram-post", label: "Insta - Post" },
+      {
+        id: "21",
+        platform: "instagram-post",
+        label: "Insta - Post",
+        topic: "Month End Reflection",
+        caption: "Reflecting on an amazing November! 🙏",
+        visual: "Gratitude-themed graphic",
+        hashtags: "#Grateful #Reflection #ThankYou",
+        time: "6:30 P.M",
+        date: "November 31 - Sunday",
+      },
     ],
   };
 
@@ -166,8 +393,53 @@ export default function ContentCalendar() {
     year: "numeric",
   });
 
+  const handleContentClick = (item: ContentItem, dayInfo: CalendarDay) => {
+    // Get day of week
+    const date = new Date(dayInfo.year, dayInfo.month, dayInfo.day);
+    const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
+    const monthName = date.toLocaleDateString("en-US", { month: "long" });
+
+    setSelectedContent({
+      ...item,
+      date: `${monthName} ${dayInfo.day} - ${dayOfWeek}`,
+    });
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedContent(null);
+  };
+
+  const handleDelete = () => {
+    if (selectedContent) {
+      // TODO: Implement actual delete logic - remove from state/backend
+      console.log("Delete content:", selectedContent.id);
+    }
+    handleCloseModal();
+  };
+
+  const handleMove = (newDate: Date) => {
+    if (selectedContent) {
+      // TODO: Implement actual move logic - update content date
+      const newDateKey = `${newDate.getDate()}-${
+        newDate.getMonth() + 1
+      }-${newDate.getFullYear()}`;
+      console.log("Move content:", selectedContent.id, "to", newDateKey);
+    }
+    handleCloseModal();
+  };
+
+  const handleEdit = () => {
+    if (selectedContent) {
+      // TODO: Navigate to edit page or open edit modal
+      console.log("Edit content:", selectedContent.id);
+    }
+    handleCloseModal();
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F3E8FF] to-white p-8">
+    <div className="min-h-screen bg-linear-to-b from-[#F3E8FF] to-white p-8">
       <div className="max-w-[1200px] mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -294,7 +566,8 @@ export default function ContentCalendar() {
                     {dayInfo.content.map((item) => (
                       <div
                         key={item.id}
-                        className={`flex items-center gap-1 text-xs font-inter ${
+                        onClick={() => handleContentClick(item, dayInfo)}
+                        className={`flex items-center gap-1 text-xs font-inter cursor-pointer hover:opacity-70 transition-opacity ${
                           platformConfig[item.platform].color
                         }`}
                       >
@@ -331,6 +604,16 @@ export default function ContentCalendar() {
             </button>
           </div>
         </div>
+
+        {/* Content Detail Modal */}
+        <ContentDetailModal
+          content={selectedContent}
+          isOpen={showModal}
+          onClose={handleCloseModal}
+          onDelete={handleDelete}
+          onMove={handleMove}
+          onEdit={handleEdit}
+        />
       </div>
     </div>
   );
