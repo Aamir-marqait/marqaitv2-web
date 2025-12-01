@@ -23,6 +23,7 @@ import EditLogo from '@/pages/onboarding/edit-logo';
 import BusinessContentSetup from '@/pages/onboarding/business-content-setup';
 import MediaGallerySetup from '@/pages/onboarding/media-gallery-setup';
 import OnboardingComplete from '@/pages/onboarding/onboarding-complete';
+import WelcomeChat from '@/pages/welcome/welcome-chat';
 import MainLayout from '@/components/layouts/MainLayout';
 
 export default function AppRoutes() {
@@ -194,6 +195,16 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <OnboardingComplete />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/welcome/chat"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <WelcomeChat />
+            </MainLayout>
           </ProtectedRoute>
         }
       />

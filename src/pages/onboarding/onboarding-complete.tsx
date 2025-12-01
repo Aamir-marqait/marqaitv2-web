@@ -1,13 +1,14 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import celebrateImage from "@/assets/celebrate.png";
 import puffBg from "@/assets/puff.png";
 
 export default function OnboardingComplete() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleLetsGo = () => {
-    // TODO: Navigate to dashboard
-    console.log("Onboarding completed! Navigate to dashboard");
+    navigate("/welcome/chat");
   };
 
   // Extract first name from user name
