@@ -7,7 +7,7 @@ import { SocialLogin } from "../shared/SocialLogin";
 import type { LoginFormData } from "@/schemas/authSchemas";
 
 interface LoginFormProps {
-  handleSubmit: (formData: LoginFormData) => void;
+  handleSubmit: (formData: LoginFormData) => Promise<void>;
   errors: Record<string, string>;
   validationTrigger: number;
   isLoading?: boolean;
@@ -17,9 +17,17 @@ export function LoginForm({ handleSubmit, errors, validationTrigger, isLoading =
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleSubmit({ email, password });
+    e.stopPropagation();
+
+    console.log("Form submitted with:", { email, password });
+
+    try {
+      await handleSubmit({ email, password });
+    } catch (error) {
+      console.error("Form submission error:", error);
+    }
   };
 
   return (
@@ -34,7 +42,7 @@ export function LoginForm({ handleSubmit, errors, validationTrigger, isLoading =
         Start Automating your market journey today
       </p>
 
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-4" onSubmit={onSubmit} noValidate>
         <FormInput
           label="Email"
           type="email"
