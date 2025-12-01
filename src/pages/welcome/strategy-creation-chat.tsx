@@ -186,7 +186,7 @@ export default function StrategyCreationChat() {
                         {msg.timestamp}
                       </span>
                     </div>
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#A855F7] to-[#8F00FF] flex items-center justify-center text-white font-inter text-sm font-semibold">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-[#A855F7] to-[#8F00FF] flex items-center justify-center text-white font-inter text-sm font-semibold">
                       {firstName.charAt(0).toUpperCase()}
                     </div>
                   </div>
