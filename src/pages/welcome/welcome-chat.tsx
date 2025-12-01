@@ -115,7 +115,7 @@ export default function WelcomeChat() {
               placeholder="Type here..."
               className="w-full h-full bg-transparent border-none outline-none resize-none font-inter text-sm text-gray-700 placeholder:text-gray-400"
               style={{
-                minHeight: "48px",
+                minHeight: "130px",
               }}
             />
           </div>
