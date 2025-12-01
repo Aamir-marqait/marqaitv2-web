@@ -19,6 +19,20 @@ export default function StrategyCreationChat() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
 
+  // Add CSS to hide scrollbar
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   // Extract first name from user name
   const firstName = user?.name?.split(" ")[0] || "there";
 
@@ -99,23 +113,30 @@ export default function StrategyCreationChat() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#F3E8FF] to-white">
-      {/* Header */}
-      <div className="flex flex-col items-center pt-8 pb-6 px-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-6 h-6 text-[#8F00FF]" />
-          <h1 className="font-inter text-[32px] md:text-[40px] font-bold text-[#8F00FF]">
-            Marqait A.I
-          </h1>
-          <Sparkles className="w-6 h-6 text-[#8F00FF]" />
-        </div>
-        <p className="font-inter text-sm text-gray-600">Your AI Marketing Assistant</p>
-      </div>
-
+    <div className="flex flex-col bg-linear-to-b from-[#F3E8FF] to-white" style={{ height: 'calc(100vh - 4rem)' }}>
       {/* Chat Container */}
-      <div className="flex-1 flex flex-col max-w-[900px] w-full mx-auto px-4 pb-4">
+      <div className="flex-1 flex flex-col max-w-[900px] w-full mx-auto px-4 overflow-hidden">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+        <div
+          className="flex-1 overflow-y-auto mb-4 space-y-4 hide-scrollbar"
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {/* Header */}
+          <div className="flex flex-col items-center pt-4 pb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-6 h-6 text-[#8F00FF]" />
+              <h1 className="font-inter text-[32px] md:text-[40px] font-bold text-[#8F00FF]">
+                Marqait A.I
+              </h1>
+              <Sparkles className="w-6 h-6 text-[#8F00FF]" />
+            </div>
+            <p className="font-inter text-sm text-gray-600">Your AI Marketing Assistant</p>
+          </div>
+
+          {/* Chat Messages */}
           {messages.map((msg) => (
             <div key={msg.id}>
               {msg.type === "ai" ? (
@@ -177,7 +198,7 @@ export default function StrategyCreationChat() {
         </div>
 
         {/* Input Area */}
-        <div className="bg-white rounded-3xl shadow-lg p-6">
+        <div className="bg-white rounded-3xl shadow-lg p-6 shrink-0">
           <div className="bg-[#F9F9F9] rounded-2xl p-4 mb-4 min-h-[100px]">
             <textarea
               value={message}
