@@ -221,7 +221,7 @@ export default function ContentDetailModal({
             <div className="p-6 border-t border-gray-200 flex items-center justify-between gap-4">
               <button
                 onClick={onDelete}
-                className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg font-inter text-base text-red-600 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 border border-gray-300 rounded-xl font-inter text-base text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-5 h-5" />
                 Delete
@@ -229,14 +229,14 @@ export default function ContentDetailModal({
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleMoveClick}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#8F00FF] rounded-lg font-inter text-base text-[#8F00FF] hover:bg-purple-50 transition-colors"
+                  className="flex items-center gap-2 px-6 py-2.5 border-2 border-[#8F00FF] rounded-xl font-inter text-base text-[#8F00FF] hover:bg-purple-50 transition-colors cursor-pointer"
                 >
                   <Move className="w-5 h-5" />
                   Move
                 </button>
                 <button
                   onClick={onEdit}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-inter text-base text-white transition-all hover:shadow-lg"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-inter text-base text-white transition-all hover:shadow-lg cursor-pointer"
                   style={{
                     background:
                       "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
@@ -326,13 +326,13 @@ export default function ContentDetailModal({
             <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
               <button
                 onClick={handleCancelMove}
-                className="px-6 py-3 border border-gray-300 rounded-lg font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-6 py-2.5 border border-gray-300 rounded-xl font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmMove}
-                className="px-6 py-3 rounded-lg font-inter text-base text-white transition-all hover:shadow-lg"
+                className="px-6 py-2.5 rounded-xl font-inter text-base text-white transition-all hover:shadow-lg cursor-pointer"
                 style={{
                   background:
                     "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",

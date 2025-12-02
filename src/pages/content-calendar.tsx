@@ -625,15 +625,15 @@ export default function ContentCalendar() {
 
         {/* Bottom Action Buttons */}
         <div className="flex items-center justify-between">
-          <button className="px-8 cursor-pointer py-3 border border-gray-300 rounded-full font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="px-8 py-2.5 border border-gray-300 rounded-xl font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
             BACK TO STRATEGY
           </button>
           <div className="flex items-center gap-4">
-            <button className="px-8 cursor-pointer py-3 border border-gray-300 rounded-full font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors">
+            <button className="px-8 py-2.5 border border-gray-300 rounded-xl font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
               EDIT
             </button>
             <button
-              className="px-8 cursor-pointer py-3 rounded-[6px] font-inter text-base text-white transition-all hover:shadow-lg"
+              className="px-8 py-2.5 rounded-xl font-inter text-base text-white transition-all hover:shadow-lg cursor-pointer"
               style={{
                 background:
                   "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
