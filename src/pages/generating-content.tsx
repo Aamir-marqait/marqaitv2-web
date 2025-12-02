@@ -100,7 +100,7 @@ export default function GeneratingContent() {
   }, [totalPosts]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F3E8FF] to-white p-8">
+    <div className="min-h-screen bg-linear-to-b from-[#F3E8FF] to-white p-8">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-[300px_1fr] gap-8">
           {/* Left Sidebar - Posts List */}
@@ -116,7 +116,9 @@ export default function GeneratingContent() {
                     <p className="font-inter text-sm font-medium text-gray-900 truncate">
                       {post.title}
                     </p>
-                    <p className="font-inter text-xs text-gray-500">{post.date}</p>
+                    <p className="font-inter text-xs text-gray-500">
+                      {post.date}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -165,7 +167,9 @@ export default function GeneratingContent() {
                       strokeWidth="8"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 56}`}
-                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - progress / 100)}`}
+                      strokeDashoffset={`${
+                        2 * Math.PI * 56 * (1 - progress / 100)
+                      }`}
                       strokeLinecap="round"
                       className="transition-all duration-500"
                     />
@@ -183,18 +187,19 @@ export default function GeneratingContent() {
                     Generating your content...
                   </h2>
                   <p className="font-inter text-sm text-gray-500 max-w-md">
-                    Lorem ipsum dolor sit amet consectetur adipiscing elit. Vestibulum id
-                    tempus nibh lobortis tempor orci odor ac purus.
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit.
+                    Vestibulum id tempus nibh lobortis tempor orci odor ac
+                    purus.
                   </p>
                 </div>
               </div>
 
               {/* Content Grid */}
               <div className="grid grid-cols-4 gap-4">
-                {contentCards.map((card, index) => (
+                {contentCards.map((card) => (
                   <div
                     key={card.id}
-                    className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#E8D5F5]"
+                    className="relative aspect-3/4 rounded-2xl overflow-hidden bg-[#E8D5F5]"
                   >
                     {/* Complete state with image */}
                     {card.status === "complete" && card.imageUrl && (

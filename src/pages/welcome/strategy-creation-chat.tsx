@@ -22,7 +22,7 @@ export default function StrategyCreationChat() {
 
   // Add CSS to hide scrollbar
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .hide-scrollbar::-webkit-scrollbar {
         display: none;
@@ -52,7 +52,8 @@ export default function StrategyCreationChat() {
       {
         id: "1",
         type: "ai",
-        content: "Perfect! Let me ask you a few quick questions to create your marketing strategy.",
+        content:
+          "Perfect! Let me ask you a few quick questions to create your marketing strategy.",
         timestamp: getCurrentTime(),
       },
       {
@@ -61,7 +62,13 @@ export default function StrategyCreationChat() {
         content:
           "First, what do you want to focus on this month? First, what do you want to focus on this month?",
         timestamp: getCurrentTime(),
-        suggestions: ["Question 01", "Question 01", "Question 01", "Question 01", "Question 01"],
+        suggestions: [
+          "Question 01",
+          "Question 01",
+          "Question 01",
+          "Question 01",
+          "Question 01",
+        ],
       },
     ];
 
@@ -114,15 +121,18 @@ export default function StrategyCreationChat() {
   };
 
   return (
-    <div className="flex flex-col bg-linear-to-b from-[#F3E8FF] to-white" style={{ height: 'calc(100vh - 4rem)' }}>
+    <div
+      className="flex flex-col bg-linear-to-b from-[#F3E8FF] to-white"
+      style={{ height: "calc(100vh - 4rem)" }}
+    >
       {/* Chat Container */}
       <div className="flex-1 flex flex-col max-w-[900px] w-full mx-auto px-4 overflow-hidden">
         {/* Messages Area */}
         <div
           className="flex-1 overflow-y-auto mb-4 space-y-4 hide-scrollbar"
           style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {/* Header */}
@@ -134,7 +144,9 @@ export default function StrategyCreationChat() {
               </h1>
               <img src={star} alt="Star" className="w-10 h-10" />
             </div>
-            <p className="font-inter text-[16px] font-normal leading-[100%] tracking-[0%] align-middle text-[#3B3C4A]">Your AI Marketing Assistant</p>
+            <p className="font-inter text-[16px] font-normal leading-[100%] tracking-[0%] align-middle text-[#3B3C4A]">
+              Create Campaign Strategy
+            </p>
           </div>
 
           {/* Chat Messages */}
@@ -144,7 +156,11 @@ export default function StrategyCreationChat() {
                 // AI Message
                 <div className="flex items-start gap-3">
                   <div className="shrink-0 w-8 h-8 rounded-full bg-[#E6D4FF] flex items-center justify-center">
-                    <img src={logo} alt="AI" className="w-4 h-4 object-contain" />
+                    <img
+                      src={logo}
+                      alt="AI"
+                      className="w-4 h-4 object-contain"
+                    />
                   </div>
                   <div className="flex-1">
                     <div className="bg-[#f8edff] rounded-2xl rounded-tl-none px-5 py-4 max-w-[600px]">
@@ -174,10 +190,10 @@ export default function StrategyCreationChat() {
                 <div className="flex justify-end">
                   <div className="flex items-start gap-3 max-w-[600px]">
                     <div className="flex-1">
-                      <div
-                        className="rounded-2xl rounded-tr-none px-5 py-4 text-white bg-[#a633ff]"
-                      >
-                        <p className="font-inter text-sm leading-relaxed">{msg.content}</p>
+                      <div className="rounded-2xl rounded-tr-none px-5 py-4 text-white bg-[#a633ff]">
+                        <p className="font-inter text-sm leading-relaxed">
+                          {msg.content}
+                        </p>
                       </div>
                       <span className="font-inter text-xs text-gray-400 mt-2 inline-block text-right w-full">
                         {msg.timestamp}
@@ -210,7 +226,9 @@ export default function StrategyCreationChat() {
           {/* Quick Actions and Send Button */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-inter text-xs text-gray-500">Quick actions:</span>
+              <span className="font-inter text-xs text-gray-500">
+                Quick actions:
+              </span>
               {quickActions.map((action, index) => (
                 <button
                   key={index}
