@@ -1,4 +1,5 @@
 import { X, Clock, Coins, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ApproveContentModalProps {
   isOpen: boolean;
@@ -21,12 +22,19 @@ export default function ApproveContentModal({
   creditsRequired = 837,
   estimatedTime = "8-12 minutes",
 }: ApproveContentModalProps) {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+
+  const handleConfirm = () => {
+    onConfirm();
+    navigate("/generating-content");
   };
 
   return (
@@ -114,7 +122,7 @@ export default function ApproveContentModal({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="px-12 py-2.5 rounded-xl font-inter text-base text-white transition-all hover:shadow-lg cursor-pointer"
             style={{
               background:
