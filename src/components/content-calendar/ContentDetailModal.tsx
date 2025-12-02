@@ -134,14 +134,23 @@ export default function ContentDetailModal({
   // Early return after all hooks
   if (!isOpen || !content) return null;
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-[600px] w-full max-h-[90vh] overflow-y-auto">
         {!showMoveCalendar ? (
           <>
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="font-inter text-2xl font-semibold text-gray-900">
+              <h2 className="font-inter text-xl font-semibold text-gray-900">
                 {content.date}
               </h2>
               <button
@@ -153,42 +162,42 @@ export default function ContentDetailModal({
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-4">
               {/* Platform and Time */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">
+                  <span className="text-lg">
                     {content.platform === "facebook-post" ? "📘" : "📷"}
                   </span>
                   <span
-                    className={`font-inter text-base font-semibold ${
+                    className={`font-inter text-sm font-semibold ${
                       platformConfig[content.platform].color
                     }`}
                   >
                     {content.label}
                   </span>
                 </div>
-                <span className="font-inter text-base text-gray-600">
+                <span className="font-inter text-sm text-gray-600">
                   {content.time || "7:30 P.M"}
                 </span>
               </div>
 
               {/* Topic */}
               <div>
-                <label className="font-inter text-sm text-gray-500 mb-1 block">
+                <label className="font-inter text-xs text-gray-500 mb-1 block">
                   Topic
                 </label>
-                <p className="font-inter text-base text-gray-900">
+                <p className="font-inter text-sm text-gray-900">
                   {content.topic || "Thursday Special Offer"}
                 </p>
               </div>
 
               {/* Caption */}
               <div>
-                <label className="font-inter text-sm text-gray-500 mb-1 block">
+                <label className="font-inter text-xs text-gray-500 mb-1 block">
                   Caption
                 </label>
-                <p className="font-inter text-base text-gray-700 leading-relaxed">
+                <p className="font-inter text-sm text-gray-700 leading-relaxed">
                   {content.caption ||
                     "THURSDAY TREAT! 🎉 Order catering for November and get 15% off dessert add-ons! Perfect for holiday parties. Offer valid through Nov 30. Book now! 🍰"}
                 </p>
@@ -196,10 +205,10 @@ export default function ContentDetailModal({
 
               {/* Visual */}
               <div>
-                <label className="font-inter text-sm text-gray-500 mb-1 block">
+                <label className="font-inter text-xs text-gray-500 mb-1 block">
                   Visual
                 </label>
-                <p className="font-inter text-base text-gray-700">
+                <p className="font-inter text-sm text-gray-700">
                   {content.visual ||
                     "Promotional graphic with desserts and offer details"}
                 </p>
@@ -207,10 +216,10 @@ export default function ContentDetailModal({
 
               {/* Hashtags */}
               <div>
-                <label className="font-inter text-sm text-gray-500 mb-1 block">
+                <label className="font-inter text-xs text-gray-500 mb-1 block">
                   Hashtags
                 </label>
-                <p className="font-inter text-base text-gray-700">
+                <p className="font-inter text-sm text-gray-700">
                   {content.hashtags ||
                     "#SpecialOffer #CateringDeal #HolidayParty #November"}
                 </p>
@@ -253,8 +262,8 @@ export default function ContentDetailModal({
             {/* Move Calendar Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-[#8F00FF]" />
-                <h2 className="font-inter text-2xl font-semibold text-gray-900">
+                <Calendar className="w-5 h-5 text-[#8F00FF]" />
+                <h2 className="font-inter text-xl font-semibold text-gray-900">
                   Select New Date
                 </h2>
               </div>

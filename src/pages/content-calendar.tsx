@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import ContentDetailModal from "@/components/content-calendar/ContentDetailModal";
+import ApproveContentModal from "@/components/content-calendar/ApproveContentModal";
 
 interface ContentItem {
   id: string;
@@ -318,6 +319,7 @@ export default function ContentCalendar() {
   const [platformFilter] = useState("All Platforms");
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [contentData, setContentData] = useState<Record<string, ContentItem[]>>(initialContentData);
 
   // Generate calendar days
@@ -477,6 +479,21 @@ export default function ContentCalendar() {
     handleCloseModal();
   };
 
+  const handleApproveClick = () => {
+    setShowApproveModal(true);
+  };
+
+  const handleApproveModalClose = () => {
+    setShowApproveModal(false);
+  };
+
+  const handleApproveConfirm = () => {
+    // TODO: Implement content generation logic
+    console.log("Starting content generation...");
+    setShowApproveModal(false);
+    // Navigate to generation progress page or show success message
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-b from-[#F3E8FF] to-white p-8">
       <div className="max-w-[1200px] mx-auto">
@@ -633,6 +650,7 @@ export default function ContentCalendar() {
               EDIT
             </button>
             <button
+              onClick={handleApproveClick}
               className="px-8 py-2.5 rounded-xl font-inter text-base text-white transition-all hover:shadow-lg cursor-pointer"
               style={{
                 background:
@@ -652,6 +670,18 @@ export default function ContentCalendar() {
           onDelete={handleDelete}
           onMove={handleMove}
           onEdit={handleEdit}
+        />
+
+        {/* Approve & Generate Content Modal */}
+        <ApproveContentModal
+          isOpen={showApproveModal}
+          onClose={handleApproveModalClose}
+          onConfirm={handleApproveConfirm}
+          totalPosts={42}
+          instagramPosts={35}
+          instagramReels={7}
+          creditsRequired={837}
+          estimatedTime="8-12 minutes"
         />
       </div>
     </div>
