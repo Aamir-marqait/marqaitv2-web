@@ -23,14 +23,6 @@ interface CalendarDay {
 }
 
 export default function ContentCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10)); // Nov 2025
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
-  const [platformFilter] = useState("All Platforms");
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
-    null
-  );
-  const [showModal, setShowModal] = useState(false);
-
   // Platform configurations with colors
   const platformConfig = {
     "instagram-post": {
@@ -50,8 +42,8 @@ export default function ContentCalendar() {
     },
   };
 
-  // Sample content data matching the screenshot
-  const contentData: Record<string, ContentItem[]> = {
+  // Initialize content data as state
+  const initialContentData: Record<string, ContentItem[]> = {
     "30-10-2025": [
       {
         id: "1",
@@ -320,6 +312,14 @@ export default function ContentCalendar() {
     ],
   };
 
+  // State management
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 10)); // Nov 2025
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+  const [platformFilter] = useState("All Platforms");
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [contentData, setContentData] = useState<Record<string, ContentItem[]>>(initialContentData);
+
   // Generate calendar days
   const generateCalendarDays = (): CalendarDay[] => {
     const year = currentDate.getFullYear();
@@ -420,13 +420,52 @@ export default function ContentCalendar() {
   };
 
   const handleMove = (newDate: Date) => {
-    if (selectedContent) {
-      // TODO: Implement actual move logic - update content date
-      const newDateKey = `${newDate.getDate()}-${
-        newDate.getMonth() + 1
-      }-${newDate.getFullYear()}`;
-      console.log("Move content:", selectedContent.id, "to", newDateKey);
+    if (!selectedContent) return;
+
+    // Create new date key for the target date
+    const newDateKey = `${newDate.getDate()}-${newDate.getMonth() + 1}-${newDate.getFullYear()}`;
+
+    // Find and remove the content from its current location
+    const updatedContentData = { ...contentData };
+    let contentToMove: ContentItem | null = null;
+    let oldDateKey: string | null = null;
+
+    // Find the content item in the current data
+    for (const [dateKey, items] of Object.entries(updatedContentData)) {
+      const itemIndex = items.findIndex(item => item.id === selectedContent.id);
+      if (itemIndex !== -1) {
+        // Found the item - remove it from current date
+        contentToMove = items[itemIndex];
+        oldDateKey = dateKey;
+        updatedContentData[dateKey] = items.filter(item => item.id !== selectedContent.id);
+
+        // Clean up empty date arrays
+        if (updatedContentData[dateKey].length === 0) {
+          delete updatedContentData[dateKey];
+        }
+        break;
+      }
     }
+
+    // If content was found, add it to the new date
+    if (contentToMove) {
+      // Update the content item's date string
+      const dayOfWeek = newDate.toLocaleDateString("en-US", { weekday: "long" });
+      const monthName = newDate.toLocaleDateString("en-US", { month: "long" });
+      contentToMove.date = `${monthName} ${newDate.getDate()} - ${dayOfWeek}`;
+
+      // Add to new date
+      if (updatedContentData[newDateKey]) {
+        updatedContentData[newDateKey] = [...updatedContentData[newDateKey], contentToMove];
+      } else {
+        updatedContentData[newDateKey] = [contentToMove];
+      }
+
+      // Update state
+      setContentData(updatedContentData);
+      console.log(`Moved content ${selectedContent.id} from ${oldDateKey} to ${newDateKey}`);
+    }
+
     handleCloseModal();
   };
 
