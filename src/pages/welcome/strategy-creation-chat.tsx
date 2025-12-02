@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Send } from "lucide-react";
 import logo from "@/assets/app-logo/logo.png";
 import star from "@/assets/star.png";
@@ -16,9 +16,11 @@ interface Message {
 export default function StrategyCreationChat() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [userMessageCount, setUserMessageCount] = useState(0);
 
   // Add CSS to hide scrollbar
   useEffect(() => {
@@ -102,8 +104,28 @@ export default function StrategyCreationChat() {
         content: message,
         timestamp: getCurrentTime(),
       };
+      const newUserCount = userMessageCount + 1;
       setMessages([...messages, newMessage]);
       setMessage("");
+      setUserMessageCount(newUserCount);
+
+      // After 2 user messages, navigate to strategy detail page
+      if (newUserCount >= 2) {
+        // Convert the last message to a URL-friendly slug
+        const strategySlug = message
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-");
+
+        // Navigate to the strategy detail page
+        setTimeout(() => {
+          navigate(`/strategy-creation-chat/${strategySlug}`, {
+            state: { strategyName: message },
+          });
+        }, 500);
+      }
 
       // TODO: Add AI response logic here
     }
@@ -113,7 +135,7 @@ export default function StrategyCreationChat() {
     setMessage(action);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -216,7 +238,7 @@ export default function StrategyCreationChat() {
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder="Type your message here..."
               className="w-full h-full bg-transparent border-none outline-none resize-none font-inter text-sm text-gray-700 placeholder:text-gray-400"
               rows={3}
