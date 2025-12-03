@@ -63,7 +63,13 @@ class AuthService {
       );
 
       if (response.data.tokens) {
-        this.saveAuthData(response.data.tokens, response.data.user);
+        // Merge is_onboarding_complete from response root into user object
+        const userWithOnboarding = {
+          ...response.data.user,
+          is_onboarding_complete: response.data.is_onboarding_complete
+        };
+
+        this.saveAuthData(response.data.tokens, userWithOnboarding);
 
         // Fetch updated user profile and stats after login
         try {
@@ -72,17 +78,26 @@ class AuthService {
             userService.getUserStats()
           ]);
 
+          // Merge is_onboarding_complete into the fresh profile
+          const updatedProfile = {
+            ...userProfile,
+            is_onboarding_complete: response.data.is_onboarding_complete
+          };
+
           // Update stored user data with fresh profile
-          this.saveAuthData(response.data.tokens, userProfile);
+          this.saveAuthData(response.data.tokens, updatedProfile);
 
           return {
             ...response.data,
-            user: userProfile,
+            user: updatedProfile,
             userStats
           };
         } catch (profileError) {
           console.warn('Failed to fetch user profile/stats:', profileError);
-          return response.data;
+          return {
+            ...response.data,
+            user: userWithOnboarding
+          };
         }
       }
 

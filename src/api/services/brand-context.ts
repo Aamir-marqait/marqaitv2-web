@@ -149,6 +149,24 @@ class BrandContextService {
       // Don't throw - this should run silently in background
     }
   }
+
+  /**
+   * Set a business as primary (only one primary per user)
+   * @param businessId - The business ID to set as primary
+   */
+  async setPrimaryBusiness(businessId: string): Promise<void> {
+    try {
+      await axiosInstance.put(
+        `${this.baseUrl}/${businessId}/primary`,
+        {},
+        { timeout: 0 }
+      );
+      console.log('✅ Business set as primary successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to set business as primary:', error);
+      throw handleApiError(error);
+    }
+  }
 }
 
 export const brandContextService = new BrandContextService();

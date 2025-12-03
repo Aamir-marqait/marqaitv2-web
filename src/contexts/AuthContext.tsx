@@ -15,6 +15,7 @@ const convertApiUserToAppUser = (apiUser: ApiUser): User => {
     id: apiUser.id,
     email: apiUser.email_address,
     name: `${apiUser.first_name} ${apiUser.last_name}`,
+    isOnboardingComplete: apiUser.is_onboarding_complete || false,
   };
 };
 

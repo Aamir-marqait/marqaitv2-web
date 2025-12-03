@@ -30,6 +30,7 @@ export interface User {
   industry?: string;
   profile_image_url?: string;
   is_verified: boolean;
+  is_onboarding_complete: boolean;
   created_at: string;
   updated_at: string;
   plan?: 'free' | 'professional' | 'enterprise';
@@ -58,6 +59,9 @@ export interface SigninResponse {
   message: string;
   user: User;
   tokens: AuthTokens;
+  primary_business_id: string | null;
+  onboarding_stage: string;
+  is_onboarding_complete: boolean;
 }
 
 export interface RefreshTokenResponse {

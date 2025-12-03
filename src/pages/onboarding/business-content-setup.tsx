@@ -95,6 +95,9 @@ export default function BusinessContentSetup() {
 
         await brandContextService.updateBusinessContext(businessId, payload);
         console.log('✅ Business context updated successfully');
+
+        // Set this business as primary
+        await brandContextService.setPrimaryBusiness(businessId);
       } catch (error) {
         console.error('❌ Failed to update business context:', error);
         // Continue flow even if API fails
