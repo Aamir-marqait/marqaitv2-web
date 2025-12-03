@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import ContentDetailModal from "@/components/content-calendar/ContentDetailModal";
 import ApproveContentModal from "@/components/content-calendar/ApproveContentModal";
+import { useNavigate } from "react-router-dom";
 
 interface ContentItem {
   id: string;
@@ -312,15 +313,18 @@ export default function ContentCalendar() {
       },
     ],
   };
-
+  const navigate = useNavigate();
   // State management
   const [currentDate, setCurrentDate] = useState(new Date(2025, 10)); // Nov 2025
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [platformFilter] = useState("All Platforms");
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
+    null
+  );
   const [showModal, setShowModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
-  const [contentData, setContentData] = useState<Record<string, ContentItem[]>>(initialContentData);
+  const [contentData, setContentData] =
+    useState<Record<string, ContentItem[]>>(initialContentData);
 
   // Generate calendar days
   const generateCalendarDays = (): CalendarDay[] => {
@@ -425,7 +429,9 @@ export default function ContentCalendar() {
     if (!selectedContent) return;
 
     // Create new date key for the target date
-    const newDateKey = `${newDate.getDate()}-${newDate.getMonth() + 1}-${newDate.getFullYear()}`;
+    const newDateKey = `${newDate.getDate()}-${
+      newDate.getMonth() + 1
+    }-${newDate.getFullYear()}`;
 
     // Find and remove the content from its current location
     const updatedContentData = { ...contentData };
@@ -434,12 +440,16 @@ export default function ContentCalendar() {
 
     // Find the content item in the current data
     for (const [dateKey, items] of Object.entries(updatedContentData)) {
-      const itemIndex = items.findIndex(item => item.id === selectedContent.id);
+      const itemIndex = items.findIndex(
+        (item) => item.id === selectedContent.id
+      );
       if (itemIndex !== -1) {
         // Found the item - remove it from current date
         contentToMove = items[itemIndex];
         oldDateKey = dateKey;
-        updatedContentData[dateKey] = items.filter(item => item.id !== selectedContent.id);
+        updatedContentData[dateKey] = items.filter(
+          (item) => item.id !== selectedContent.id
+        );
 
         // Clean up empty date arrays
         if (updatedContentData[dateKey].length === 0) {
@@ -452,20 +462,27 @@ export default function ContentCalendar() {
     // If content was found, add it to the new date
     if (contentToMove) {
       // Update the content item's date string
-      const dayOfWeek = newDate.toLocaleDateString("en-US", { weekday: "long" });
+      const dayOfWeek = newDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
       const monthName = newDate.toLocaleDateString("en-US", { month: "long" });
       contentToMove.date = `${monthName} ${newDate.getDate()} - ${dayOfWeek}`;
 
       // Add to new date
       if (updatedContentData[newDateKey]) {
-        updatedContentData[newDateKey] = [...updatedContentData[newDateKey], contentToMove];
+        updatedContentData[newDateKey] = [
+          ...updatedContentData[newDateKey],
+          contentToMove,
+        ];
       } else {
         updatedContentData[newDateKey] = [contentToMove];
       }
 
       // Update state
       setContentData(updatedContentData);
-      console.log(`Moved content ${selectedContent.id} from ${oldDateKey} to ${newDateKey}`);
+      console.log(
+        `Moved content ${selectedContent.id} from ${oldDateKey} to ${newDateKey}`
+      );
     }
 
     handleCloseModal();
@@ -642,7 +659,10 @@ export default function ContentCalendar() {
 
         {/* Bottom Action Buttons */}
         <div className="flex items-center justify-between">
-          <button className="px-8 py-2.5 border border-gray-300 rounded-xl font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-8  py-2.5 border border-gray-300 rounded-xl font-inter text-base text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
             BACK TO STRATEGY
           </button>
           <div className="flex items-center gap-4">

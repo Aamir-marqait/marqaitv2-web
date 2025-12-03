@@ -169,13 +169,13 @@ export default function StrategyDetail() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={handleMakeChanges}
-                  className="px-5 py-2 rounded-lg border-2 border-gray-300 bg-white font-inter text-sm font-semibold text-gray-700 hover:border-[#8F00FF] hover:bg-purple-50 transition-all"
+                  className="px-5 py-2 pointer-cursor rounded-lg border-2 border-gray-300 bg-white font-inter text-sm font-semibold text-gray-700 hover:border-[#8F00FF] hover:bg-purple-50 transition-all"
                 >
                   MAKE CHANGES
                 </button>
                 <button
                   onClick={handleApproveAndCreate}
-                  className="px-5 py-2 rounded-lg font-inter text-sm font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
+                  className="px-5 pointer-cursor py-2 rounded-lg font-inter text-sm font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
                   style={{
                     background:
                       "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
