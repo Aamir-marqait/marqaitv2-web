@@ -24,7 +24,7 @@ export function Login() {
     message: "",
     type: "error",
   });
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   const showToast = (message: string, type: "error" | "success" | "info" = "error") => {
@@ -39,10 +39,16 @@ export function Login() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate("/choose-plan", { replace: true });
+    if (!isLoading && isAuthenticated && user) {
+      // If onboarding is complete, redirect to welcome chat
+      if (user.isOnboardingComplete) {
+        navigate("/welcome/chat", { replace: true });
+      } else {
+        // Otherwise, redirect to choose plan (start of onboarding)
+        navigate("/choose-plan", { replace: true });
+      }
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, user, navigate]);
 
   const getErrorMessage = (error: any): string => {
     // Check for HTTP status codes (ApiException has status property)

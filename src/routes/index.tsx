@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { OnboardingProtectedRoute } from '@/components/auth/OnboardingProtectedRoute';
 import { Login } from '@/pages/auth/Login';
 import { Signup } from '@/pages/auth/Signup';
 import { VerifyOtp } from '@/pages/auth/VerifyOtp';
@@ -47,159 +48,159 @@ export default function AppRoutes() {
       <Route
         path="/choose-plan"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <SubscriptionPage />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/setup-your-brand"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <Step1 />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/new-brand"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <NewBrand />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/brand-details"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <BrandDetails />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/color-palette"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <ColorPalette />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/logo-generation"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <LogoGeneration />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/existing-brand"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <ExistingBrand />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/existing-brand-details"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <ExistingBrandDetails />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/existing-brand-color-palette"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <ExistingBrandColorPalette />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/upload-logo"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <UploadLogo />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/brand-book"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <BrandBook />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/brand-analysis"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <BrandAnalysis />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/edit-logo"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <EditLogo />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/business-content-setup"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <BusinessContentSetup />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/media-gallery-setup"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <MainLayout>
               <MediaGallerySetup />
             </MainLayout>
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
         path="/onboarding/complete"
         element={
-          <ProtectedRoute>
+          <OnboardingProtectedRoute>
             <OnboardingComplete />
-          </ProtectedRoute>
+          </OnboardingProtectedRoute>
         }
       />
       <Route
