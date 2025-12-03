@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 
 interface ContentPost {
   id: string;
@@ -12,6 +12,7 @@ interface ContentPost {
 export default function GeneratingContent() {
   const [progress, setProgress] = useState(80);
   const [completedPosts, setCompletedPosts] = useState(20);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const totalPosts = 42;
   const queuedPosts = 39;
 
@@ -87,8 +88,11 @@ export default function GeneratingContent() {
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + 1;
+        const newProgress = prev >= 100 ? 100 : prev + 1;
+        if (newProgress === 100 && !showCompletionModal) {
+          setShowCompletionModal(true);
+        }
+        return newProgress;
       });
       setCompletedPosts((prev) => {
         if (prev >= totalPosts) return totalPosts;
@@ -97,10 +101,63 @@ export default function GeneratingContent() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [totalPosts]);
+  }, [totalPosts, showCompletionModal]);
 
   return (
     <div className="min-h-screen bg-linear-to-b from-[#F3E8FF] to-white p-8">
+      {/* Completion Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-[500px] w-full">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                <h2 className="font-inter text-xl font-semibold text-gray-900">
+                  Campaign Content Ready!
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <p className="font-inter text-sm text-gray-700 mb-6">
+                17 posts generated and scheduled for Nov 25-29
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setShowCompletionModal(false)}
+                  className="px-6 py-2 border-2 border-[#8F00FF] rounded-xl font-inter text-sm text-[#8F00FF] hover:bg-purple-50 transition-colors cursor-pointer"
+                >
+                  Schedule
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    // Navigate to content calendar or view content
+                  }}
+                  className="px-6 py-2 rounded-xl font-inter text-sm text-white transition-all hover:shadow-lg cursor-pointer"
+                  style={{
+                    background:
+                      "radial-gradient(43.57% 80% at 49.09% 100%, #DAABFF 0%, #8F00FF 100%)",
+                  }}
+                >
+                  View Content
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-[300px_1fr] gap-8">
           {/* Left Sidebar - Posts List */}
