@@ -6,3 +6,4 @@ export * from './brand-context';
 export * from './logo-upload';
 export * from './six-logos';
 export * from './media-gallery';
+export * from './strategy';
