@@ -168,3 +168,6 @@ export interface ResetPasswordRequest {
 export interface ResetPasswordResponse {
   message: string;
 }
+
+// Export Strategy types
+export * from './strategy';

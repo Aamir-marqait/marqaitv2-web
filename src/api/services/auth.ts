@@ -71,6 +71,13 @@ class AuthService {
 
         this.saveAuthData(response.data.tokens, userWithOnboarding);
 
+        // Store business_id separately for easy access (using both keys for compatibility)
+        if (response.data.primary_business_id) {
+          localStorage.setItem('primary_business_id', response.data.primary_business_id);
+          localStorage.setItem('business_id', response.data.primary_business_id);
+          console.log('✅ Business ID stored from signin:', response.data.primary_business_id);
+        }
+
         // Fetch updated user profile and stats after login
         try {
           const [userProfile, userStats] = await Promise.all([

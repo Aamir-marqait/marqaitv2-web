@@ -39,12 +39,24 @@ export default function WelcomeChat() {
   };
 
   const handleQuickAction = (action: string) => {
-    // Set the message to the quick action text
-    setMessage(action);
+    // For "Yes!" action, navigate directly to strategy creation
+    if (action === "Yes!") {
+      navigate("/strategy-creation-chat");
+    } else {
+      // Set the message to the quick action text
+      setMessage(action);
+    }
   };
 
   const handleExploreLink = (href: string) => {
     navigate(href);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -111,7 +123,8 @@ export default function WelcomeChat() {
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type here..."
+              onKeyDown={handleKeyDown}
+              placeholder="Type here... (e.g., 'I want to promote my new product launch for the next 30 days on Instagram and LinkedIn')"
               className="w-full h-full bg-transparent border-none outline-none resize-none font-inter text-sm text-gray-700 placeholder:text-gray-400"
               style={{
                 minHeight: "130px",
