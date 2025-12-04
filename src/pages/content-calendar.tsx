@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
 import ContentDetailModal from "@/components/content-calendar/ContentDetailModal";
 import ApproveContentModal from "@/components/content-calendar/ApproveContentModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { strategyService } from "@/api/services";
+import type { CalendarItemSummary } from "@/api/types";
 
 interface ContentItem {
   id: string;
@@ -314,8 +316,11 @@ export default function ContentCalendar() {
     ],
   };
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const strategyId = searchParams.get("strategy_id");
+
   // State management
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10)); // Nov 2025
+  const [currentDate, setCurrentDate] = useState(new Date()); // Will be set based on API data
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [platformFilter] = useState("All Platforms");
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
@@ -325,6 +330,70 @@ export default function ContentCalendar() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [contentData, setContentData] =
     useState<Record<string, ContentItem[]>>(initialContentData);
+  const [calendarItems, setCalendarItems] = useState<CalendarItemSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch calendar items from API
+  useEffect(() => {
+    const fetchCalendarItems = async () => {
+      if (!strategyId) {
+        setError("Strategy ID not found in URL");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const items = await strategyService.getCalendarItemsDetailed(strategyId);
+        setCalendarItems(items);
+
+        // Set calendar to show the first month that has items
+        if (items.length > 0) {
+          const firstDate = new Date(items[0].scheduled_date);
+          setCurrentDate(new Date(firstDate.getFullYear(), firstDate.getMonth()));
+        }
+
+        // Transform API data to contentData format for calendar display
+        const transformedData: Record<string, ContentItem[]> = {};
+        items.forEach((item) => {
+          const date = new Date(item.scheduled_date);
+          const dateKey = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+
+          // Map platform and content_type to our UI format
+          const platformKey = `${item.platform}-${item.content_type}` as any;
+
+          const contentItem: ContentItem = {
+            id: item.id,
+            platform: platformKey,
+            label: `${item.platform.charAt(0).toUpperCase() + item.platform.slice(1)} - ${item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)}`,
+            topic: item.content_theme,
+            time: item.scheduled_time,
+            date: date.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              weekday: "long"
+            }),
+          };
+
+          if (!transformedData[dateKey]) {
+            transformedData[dateKey] = [];
+          }
+          transformedData[dateKey].push(contentItem);
+        });
+
+        setContentData(transformedData);
+        setError(null);
+      } catch (err: any) {
+        console.error("Error fetching calendar items:", err);
+        setError(err?.response?.data?.message || "Failed to load calendar items");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCalendarItems();
+  }, [strategyId]);
 
   // Generate calendar days
   const generateCalendarDays = (): CalendarDay[] => {
@@ -511,6 +580,35 @@ export default function ContentCalendar() {
     // Navigate to generation progress page or show success message
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-b from-[#F3E8FF] to-white">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#8F00FF] mx-auto mb-4" />
+          <p className="text-gray-600">Loading calendar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-b from-[#F3E8FF] to-white">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-b from-[#F3E8FF] to-white p-8">
       <div className="max-w-[1200px] mx-auto">
@@ -519,7 +617,9 @@ export default function ContentCalendar() {
           <h1 className="font-inter text-[48px] font-semibold leading-tight text-gray-900">
             Your 30-Day Content Calendar
           </h1>
-          <p className="font-inter text-base text-gray-500 mt-1">Sub-Text</p>
+          <p className="font-inter text-base text-gray-500 mt-1">
+            {calendarItems.length} posts scheduled
+          </p>
         </div>
 
         {/* Main Calendar Card */}

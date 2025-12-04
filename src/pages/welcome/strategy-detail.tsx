@@ -162,9 +162,13 @@ export default function StrategyDetail() {
       const updated = await strategyService.getStrategyProject(strategyId);
       setStrategy(updated);
 
-      // Show appropriate message based on response
+      // Show appropriate message and navigate based on response
       if (response.status === "COMPLETED") {
         showToast(response.message || "Calendar generated successfully!", "success");
+        // Navigate to content calendar with strategy ID
+        setTimeout(() => {
+          navigate(`/content-calendar?strategy_id=${strategyId}`);
+        }, 1500); // Small delay to show the toast
       } else {
         showToast("Calendar generation started! This will take 5-7 minutes.", "info");
       }
