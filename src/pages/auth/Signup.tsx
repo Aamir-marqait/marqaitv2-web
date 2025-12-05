@@ -7,14 +7,34 @@ import { SignupForm } from "@/components/auth/signup/SignupForm";
 import { ImageSection } from "@/components/auth/shared/ImageSection";
 import { signupSchema, type SignupFormData } from "@/schemas/authSchemas";
 import { useAuth } from "@/hooks/useAuth";
+import { Toast } from "@/components/ui/toast";
 import { z } from "zod";
+
+interface ToastState {
+  show: boolean;
+  message: string;
+  type: "error" | "success" | "info";
+}
 
 export function Signup() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationTrigger, setValidationTrigger] = useState(0);
+  const [toast, setToast] = useState<ToastState>({
+    show: false,
+    message: "",
+    type: "error",
+  });
   const { signup, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  const showToast = (message: string, type: "error" | "success" | "info" = "error") => {
+    setToast({ show: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ ...toast, show: false });
+  };
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -35,6 +55,9 @@ export function Signup() {
 
   const [selectedIndustry, setSelectedIndustry] = useState(
     savedData?.selectedIndustry || ""
+  );
+  const [customIndustry, setCustomIndustry] = useState(
+    savedData?.customIndustry || ""
   );
   const [agreeToTerms, setAgreeToTerms] = useState(
     savedData?.agreeToTerms || false
@@ -70,6 +93,7 @@ export function Signup() {
       confirmPassword,
       companyName,
       selectedIndustry,
+      customIndustry,
       agreeToTerms,
     };
     localStorage.setItem("signupFormData", JSON.stringify(formData));
@@ -80,6 +104,7 @@ export function Signup() {
     confirmPassword,
     companyName,
     selectedIndustry,
+    customIndustry,
     agreeToTerms,
     isLoaded,
   ]);
@@ -100,6 +125,42 @@ export function Signup() {
     }
   };
 
+  const getErrorMessage = (error: any): string => {
+    // Check for HTTP status codes
+    const status = error.status || error.response?.status;
+
+    if (status) {
+      if (status >= 500) {
+        return "Something went wrong. Please try again later.";
+      }
+      if (status === 409) {
+        return "An account with this email already exists. Please login instead.";
+      }
+      if (status === 400) {
+        return "Invalid information provided. Please check your details.";
+      }
+      if (status === 429) {
+        return "Too many attempts. Please try again later.";
+      }
+    }
+
+    // Check error message content
+    const errorMsg = error.message?.toLowerCase() || "";
+    if (errorMsg.includes("email") && errorMsg.includes("exist")) {
+      return "An account with this email already exists. Please login instead.";
+    }
+
+    if (errorMsg.includes("network") || errorMsg.includes("connection")) {
+      return "Network error. Please check your connection.";
+    }
+
+    if (errorMsg.includes("password") && errorMsg.includes("weak")) {
+      return "Password is too weak. Please use a stronger password.";
+    }
+
+    return error.message || "Signup failed. Please try again.";
+  };
+
   const handleSubmit = async (formData: SignupFormData) => {
     try {
       const validatedData = signupSchema.parse(formData);
@@ -110,6 +171,11 @@ export function Signup() {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || nameParts[0];
 
+      // Use custom industry if "other" is selected, otherwise use selected industry
+      const finalIndustry = validatedData.selectedIndustry === "other"
+        ? customIndustry
+        : validatedData.selectedIndustry;
+
       // Call signup API
       await signup(
         validatedData.email,
@@ -117,7 +183,7 @@ export function Signup() {
         firstName,
         lastName,
         validatedData.companyName || undefined,
-        validatedData.selectedIndustry || undefined
+        finalIndustry || undefined
       );
 
       // Clear saved form data
@@ -135,12 +201,11 @@ export function Signup() {
         });
         setErrors(formattedErrors);
         setValidationTrigger((prev) => prev + 1);
-      } else if (error instanceof Error) {
-        // Handle API errors
-        setErrors({ general: error.message || "Signup failed. Please try again." });
-        setValidationTrigger((prev) => prev + 1);
       } else {
-        setErrors({ general: "An unexpected error occurred" });
+        // Show toast for API errors
+        const errorMessage = getErrorMessage(error);
+        showToast(errorMessage, "error");
+        setErrors({ general: errorMessage });
         setValidationTrigger((prev) => prev + 1);
       }
     }
@@ -164,6 +229,16 @@ export function Signup() {
         name="twitter:description"
         content="Sign up for Marqait to start managing your business with powerful tools and insights."
       />
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+
       <div
         className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
@@ -185,6 +260,8 @@ export function Signup() {
             setCompanyName={setCompanyName}
             selectedIndustry={selectedIndustry}
             setSelectedIndustry={setSelectedIndustry}
+            customIndustry={customIndustry}
+            setCustomIndustry={setCustomIndustry}
             agreeToTerms={agreeToTerms}
             setAgreeToTerms={setAgreeToTerms}
             handleSubmit={handleSubmit}

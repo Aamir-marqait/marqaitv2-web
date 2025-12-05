@@ -514,7 +514,7 @@ export default function ContentCalendar() {
     year: "numeric",
   });
 
-  const handleContentClick = async (item: ContentItem, dayInfo: CalendarDay) => {
+  const handleContentClick = async (item: ContentItem) => {
     try {
       setShowModal(true);
       setIsLoadingDetails(true);
@@ -786,7 +786,7 @@ export default function ContentCalendar() {
                     {dayInfo.content.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleContentClick(item, dayInfo)}
+                        onClick={() => handleContentClick(item)}
                         className={`flex items-center gap-1 text-xs font-inter cursor-pointer hover:opacity-70 transition-opacity ${
                           platformConfig[item.platform]?.color || "text-gray-700"
                         }`}

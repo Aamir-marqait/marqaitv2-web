@@ -20,6 +20,8 @@ interface SignupFormProps {
   setCompanyName: (value: string) => void;
   selectedIndustry: string;
   setSelectedIndustry: (value: string) => void;
+  customIndustry: string;
+  setCustomIndustry: (value: string) => void;
   agreeToTerms: boolean;
   setAgreeToTerms: (value: boolean) => void;
   handleSubmit: (formData: SignupFormData) => void;
@@ -41,6 +43,8 @@ export function SignupForm({
   setCompanyName,
   selectedIndustry,
   setSelectedIndustry,
+  customIndustry,
+  setCustomIndustry,
   agreeToTerms,
   setAgreeToTerms,
   handleSubmit,
@@ -119,6 +123,8 @@ export function SignupForm({
           setCompanyName={setCompanyName}
           selectedIndustry={selectedIndustry}
           setSelectedIndustry={setSelectedIndustry}
+          customIndustry={customIndustry}
+          setCustomIndustry={setCustomIndustry}
           hasCompanyError={!!errors.companyName}
           hasIndustryError={!!errors.selectedIndustry}
           trigger={validationTrigger}
