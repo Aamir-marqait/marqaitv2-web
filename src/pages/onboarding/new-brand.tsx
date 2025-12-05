@@ -23,8 +23,10 @@ export default function NewBrand() {
   const { brandingData, setNewBrandData } = useBranding();
   const [businessName, setBusinessName] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [customIndustry, setCustomIndustry] = useState("");
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const showCustomInput = selectedIndustry === "other";
 
   // Load data from context on mount and cleanup brandbook content
   useEffect(() => {
@@ -32,7 +34,14 @@ export default function NewBrand() {
       setBusinessName(brandingData.newBrand.businessName);
     }
     if (brandingData.newBrand.industry) {
-      setSelectedIndustry(brandingData.newBrand.industry);
+      // Check if it's a predefined industry or a custom one
+      const isCustom = !industries.some(ind => ind.value === brandingData.newBrand.industry);
+      if (isCustom) {
+        setSelectedIndustry("other");
+        setCustomIndustry(brandingData.newBrand.industry);
+      } else {
+        setSelectedIndustry(brandingData.newBrand.industry);
+      }
     }
 
     // Clean up brandbook content when user reaches Step 1 Brand Info (starting fresh)
@@ -44,10 +53,13 @@ export default function NewBrand() {
   }, [brandingData.newBrand]);
 
   const handleContinue = () => {
+    // Use custom industry if "other" is selected, otherwise use selected industry
+    const finalIndustry = selectedIndustry === "other" ? customIndustry : selectedIndustry;
+
     // Save to context
     setNewBrandData({
       businessName,
-      industry: selectedIndustry,
+      industry: finalIndustry,
     });
     navigate("/onboarding/brand-details");
   };
@@ -89,72 +101,90 @@ export default function NewBrand() {
               />
             </div>
 
-            {/* Industry Dropdown */}
+            {/* Industry Dropdown or Text Input */}
             <div className="relative">
               <label className="absolute -top-2 left-3 md:left-4 bg-white px-1 text-xs md:text-[12px] font-normal leading-[100%] tracking-normal font-inter text-black z-10">
                 Industry<span className="text-red-500">*</span>
               </label>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-full rounded-xl md:rounded-2xl border border-[#E4E4E4] bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 focus:outline-none focus:border-gray-400 flex items-center justify-between"
-                  >
-                    <span
-                      className={cn(
-                        !selectedIndustry && "text-gray-400",
-                        selectedIndustry && "truncate text-sm"
-                      )}
+              {showCustomInput ? (
+                // Text input when "Other" is selected
+                <input
+                  type="text"
+                  placeholder="Enter your industry"
+                  value={customIndustry}
+                  onChange={(e) => setCustomIndustry(e.target.value)}
+                  onBlur={() => {
+                    // Allow user to clear and go back to dropdown if empty
+                    if (!customIndustry) {
+                      setSelectedIndustry("");
+                    }
+                  }}
+                  className="w-full rounded-xl md:rounded-2xl border border-[#E4E4E4] bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-gray-400"
+                />
+              ) : (
+                // Dropdown when "Other" is not selected
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full rounded-xl md:rounded-2xl border border-[#E4E4E4] bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 focus:outline-none focus:border-gray-400 flex items-center justify-between"
                     >
-                      {selectedIndustry
-                        ? industries.find(
-                            (industry) => industry.value === selectedIndustry
-                          )?.label
-                        : "Select industry"}
-                    </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-0" align="start">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search industry..."
-                      className="border-b"
-                    />
-                    <CommandList>
-                      <CommandEmpty>No industry found.</CommandEmpty>
-                      <CommandGroup>
-                        {industries.map((industry) => (
-                          <CommandItem
-                            key={industry.value}
-                            value={industry.value}
-                            onSelect={(currentValue) => {
-                              setSelectedIndustry(
-                                currentValue === selectedIndustry
-                                  ? ""
-                                  : currentValue
-                              );
-                              setOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedIndustry === industry.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                            {industry.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                      <span
+                        className={cn(
+                          !selectedIndustry && "text-gray-400",
+                          selectedIndustry && "truncate text-sm"
+                        )}
+                      >
+                        {selectedIndustry
+                          ? industries.find(
+                              (industry) => industry.value === selectedIndustry
+                            )?.label
+                          : "Select industry"}
+                      </span>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-96 p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search industry..."
+                        className="border-b"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No industry found.</CommandEmpty>
+                        <CommandGroup>
+                          {industries.map((industry) => (
+                            <CommandItem
+                              key={industry.value}
+                              value={industry.value}
+                              onSelect={(currentValue) => {
+                                setSelectedIndustry(
+                                  currentValue === selectedIndustry
+                                    ? ""
+                                    : currentValue
+                                );
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedIndustry === industry.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {industry.label}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </div>
         </div>
@@ -175,7 +205,7 @@ export default function NewBrand() {
           {/* Continue Button */}
           <button
             onClick={handleContinue}
-            disabled={!businessName || !selectedIndustry}
+            disabled={!businessName || !selectedIndustry || (selectedIndustry === "other" && !customIndustry)}
             className="cursor-pointer px-10 py-3 rounded-xl font-inter text-base font-semibold leading-5 tracking-normal uppercase text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background:

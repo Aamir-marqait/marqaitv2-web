@@ -170,10 +170,12 @@ export default function ColorPalette() {
       // Navigate immediately - API calls will happen in background
       navigate("/onboarding/logo-generation");
 
-      // Fire Brand Context API in background (non-blocking)
+      // Fire Brand Context API first, then Logo Generation (sequential in background)
       (async () => {
+        let businessIdToUse: string | null = null;
+
         try {
-          console.log('📡 Creating brand context via API (Create New Brand)...');
+          console.log('📡 Step 1: Creating brand context via API (Create New Brand)...');
           console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
           console.log('🔍 Branding data:', brandingData);
 
@@ -206,69 +208,71 @@ export default function ColorPalette() {
           // Store business_id in context
           if (brandContextResponse.id) {
             setBusinessId(brandContextResponse.id);
+            businessIdToUse = brandContextResponse.id;
             console.log('✅ Brand context created with business_id:', brandContextResponse.id);
             console.log('✅ Business ID also saved to localStorage automatically');
+          } else {
+            console.error('❌ Brand context API returned but no business_id found');
+            return; // Exit early if no business ID
           }
         } catch (apiError) {
           console.error('❌ Failed to create brand context:', apiError);
+          return; // Exit early on error
         }
-      })();
 
-      // Fire Six Logos API in background (non-blocking)
-      (async () => {
+        // Step 2: Now that we have business_id, generate logos
         try {
-          const businessId = localStorage.getItem('business_id');
+          if (!businessIdToUse) {
+            console.error('❌ No business_id available. Cannot generate logos.');
+            return;
+          }
 
-          if (!businessId) {
-            console.error('❌ No business_id found in localStorage. Cannot generate logos.');
-          } else {
-            console.log('🎨 Generating 6 logo variations with business_id:', businessId);
+          console.log('🎨 Step 2: Generating 6 logo variations with business_id:', businessIdToUse);
 
-            const targetAudienceArray = brandingData.brandDetails.targetAudience
-              ? brandingData.brandDetails.targetAudience.split(',').map((v: string) => v.trim())
-              : [];
+          const targetAudienceArray = brandingData.brandDetails.targetAudience
+            ? brandingData.brandDetails.targetAudience.split(',').map((v: string) => v.trim())
+            : [];
 
-            const sixLogosPayload = {
-              parameters: {
-                business_id: businessId,
-                business_name: brandingData.newBrand.businessName || 'Your Business',
-                industry_category: brandingData.newBrand.industry || 'General',
-                brand_personality: brandingData.brandDetails.brandPersonality || '',
-                brand_tone: brandingData.brandDetails.styleReferences || '',
-                color_palette: {
-                  primary: selectedColors[0] || '#6366F1',
-                  secondary: selectedColors[1] || '#8B5CF6',
-                  accent: selectedColors[2] || '#EC4899',
-                  other: selectedColors[3] || '#F3F4F6',
-                },
-                core_values: brandingData.brandDetails.coreValues
-                  ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
-                  : [],
-                target_audience: targetAudienceArray,
+          const sixLogosPayload = {
+            parameters: {
+              business_id: businessIdToUse,
+              business_name: brandingData.newBrand.businessName || 'Your Business',
+              industry_category: brandingData.newBrand.industry || 'General',
+              brand_personality: brandingData.brandDetails.brandPersonality || '',
+              brand_tone: brandingData.brandDetails.styleReferences || '',
+              color_palette: {
+                primary: selectedColors[0] || '#6366F1',
+                secondary: selectedColors[1] || '#8B5CF6',
+                accent: selectedColors[2] || '#EC4899',
+                other: selectedColors[3] || '#F3F4F6',
               },
-              priority: 'NORMAL',
-              max_retries: 0,
-            };
+              core_values: brandingData.brandDetails.coreValues
+                ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
+                : [],
+              target_audience: targetAudienceArray,
+            },
+            priority: 'NORMAL',
+            max_retries: 0,
+          };
 
-            console.log('📦 Six Logos request payload:', sixLogosPayload);
+          console.log('📦 Six Logos request payload:', sixLogosPayload);
 
-            const sixLogosResponse = await sixLogosService.generateSixLogos(sixLogosPayload);
+          const sixLogosResponse = await sixLogosService.generateSixLogos(sixLogosPayload);
 
-            // Store logo URLs in context
-            if (sixLogosResponse.logo_urls && sixLogosResponse.logo_urls.length > 0) {
-              setLogoData({
-                ...brandingData.logo,
-                generatedLogoUrls: sixLogosResponse.logo_urls,
-              });
-              console.log('✅ Six logos generated:', sixLogosResponse.logo_urls);
-            } else {
-              // API returned but no logo URLs
-              setLogoData({
-                ...brandingData.logo,
-                generatedLogoUrls: [],
-              });
-              console.log('⚠️ Six logos API response has no logo URLs');
-            }
+          // Store logo URLs in context
+          if (sixLogosResponse.logo_urls && sixLogosResponse.logo_urls.length > 0) {
+            setLogoData({
+              ...brandingData.logo,
+              generatedLogoUrls: sixLogosResponse.logo_urls,
+            });
+            console.log('✅ Six logos generated:', sixLogosResponse.logo_urls);
+          } else {
+            // API returned but no logo URLs
+            setLogoData({
+              ...brandingData.logo,
+              generatedLogoUrls: [],
+            });
+            console.log('⚠️ Six logos API response has no logo URLs');
           }
         } catch (logoError) {
           console.error('❌ Failed to generate logos:', logoError);

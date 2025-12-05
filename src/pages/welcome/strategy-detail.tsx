@@ -33,6 +33,7 @@ export default function StrategyDetail() {
   const [editFeedback, setEditFeedback] = useState("");
   const [showEditModal, setShowEditModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("overview");
   const [toast, setToast] = useState<ToastState>({
     show: false,
     message: "",
@@ -305,267 +306,505 @@ export default function StrategyDetail() {
   const statusInfo = getStatusMessage();
   const StatusIcon = statusInfo.icon;
 
-  // Prepare strategy sections for display
-  const strategyData = strategy.strategy
-    ? [
-        {
-          icon: Target,
-          title: "STRATEGY SUMMARY",
-          content:
-            strategy.strategy.strategy_summary ||
-            "Strategy summary will be generated...",
-        },
-        {
-          icon: Clock,
-          title: "TIMELINE & DURATION",
-          content: `📅 Duration: ${
-            strategy.duration_days
-          } days\n📊 Status: ${strategy.status.replace(/_/g, " ")}`,
-        },
-        {
-          icon: Layers,
-          title: "SELECTED PLATFORMS",
-          content: strategy.selected_platforms
-            .map((p) => `• ${p.toUpperCase()}`)
-            .join("\n"),
-        },
-        {
-          icon: Target,
-          title: "FOCUS AREAS",
-          content: strategy.focus_areas
-            .map((area) => `• ${area.replace(/_/g, " ").toUpperCase()}`)
-            .join("\n"),
-        },
+  // Define tabs structure
+  const tabs = [
+    { id: "overview", label: "Overview", icon: Target },
+    { id: "themes", label: "Content Themes", icon: LayoutGrid },
+    { id: "frequency", label: "Posting Schedule", icon: Grid3x3 },
+    { id: "kpis", label: "KPIs & Goals", icon: TrendingUp },
+    { id: "competitors", label: "Competitors", icon: Target },
+    { id: "festivals", label: "Events Calendar", icon: Clock },
+  ];
 
-        ...(strategy.special_dates && strategy.special_dates.length > 0
-          ? [
-              {
-                icon: Clock,
-                title: "SPECIAL DATES",
-                content: strategy.special_dates
-                  .map((d) => `📅 ${d.date}: ${d.name} (${d.type})`)
-                  .join("\n"),
-              },
-            ]
-          : []),
-        // CONTENT THEMES - Detailed
-        ...(strategy.strategy.content_themes?.map((theme, idx) => ({
-          icon: LayoutGrid,
-          title: `CONTENT THEME ${idx + 1}: ${theme.theme.toUpperCase()}`,
-          content: `📝 Description: ${
-            theme.description
-          }\n\n🎯 Target Segment: ${
-            theme.target_segment || "N/A"
-          }\n\n📊 Frequency: ${
-            theme.frequency
-          }\n\n🚀 Organic Growth Rationale:\n${
-            theme.organic_growth_rationale
-          }\n\n💎 Differentiation:\n${
-            theme.differentiation
-          }\n\n🎭 Viral Potential: ${
-            theme.viral_potential
-          }\n\n📱 Recommended Platforms: ${
-            theme.recommended_platforms?.join(", ").toUpperCase() || "N/A"
-          }\n\n💡 Example Posts:\n${
-            theme.example_posts
-              ?.map(
-                (post, i) =>
-                  `\n${i + 1}. ${post.platform}\n   Hook: "${
-                    post.hook
-                  }"\n   Description: ${
-                    post.content_description
-                  }\n   Why Shareable: ${post.why_shareable}\n   Conversion: ${
-                    post.conversion_tactic
-                  }`
-              )
-              .join("\n") || "No examples available"
-          }\n\n🎯 Engagement Tactics:\n${theme.engagement_tactics}`,
-        })) || []),
-        // POSTING FREQUENCY - Detailed
-        {
-          icon: Grid3x3,
-          title: "POSTING FREQUENCY BREAKDOWN",
-          content: Object.entries(strategy.strategy.posting_frequency || {})
-            .map(([platform, freq]: [string, any]) => {
-              const details = [];
-              details.push(`📱 PLATFORM: ${platform.toUpperCase()}`);
-              details.push(`📊 Posts per week: ${freq.posts_per_week}`);
-              if (freq.best_posting_times) {
-                details.push(
-                  `⏰ Best times: ${freq.best_posting_times.join(", ")}`
-                );
-              }
-              if (freq.content_type_distribution) {
-                details.push(`\n📋 Content Mix:`);
-                Object.entries(freq.content_type_distribution).forEach(
-                  ([type, count]) => {
-                    details.push(`   • ${type}: ${count} per week`);
-                  }
-                );
-              }
-              if (freq.engagement_goal) {
-                details.push(`\n🎯 Engagement Goal: ${freq.engagement_goal}`);
-              }
-              if (freq.organic_growth_rationale) {
-                details.push(
-                  `\n💡 Strategy:\n${freq.organic_growth_rationale}`
-                );
-              }
-              return details.join("\n");
-            })
-            .join("\n\n─────────────────\n\n"),
-        },
-        // KPIs - Detailed
-        {
-          icon: TrendingUp,
-          title: "KEY PERFORMANCE INDICATORS (KPIs)",
-          content: (() => {
-            const kpis = strategy.strategy.kpis;
-            if (!kpis) return "KPIs will be set...";
+  // Render tab content based on active tab
+  const renderTabContent = () => {
+    if (!strategy?.strategy) return null;
 
-            const sections = [];
+    switch (activeTab) {
+      case "overview":
+        return (
+          <div className="space-y-6">
+            {/* Strategy Summary */}
+            <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="w-5 h-5 text-[#8F00FF]" />
+                <h3 className="font-inter text-lg font-semibold text-gray-900">
+                  Strategy Summary
+                </h3>
+              </div>
+              <p className="font-inter text-sm text-gray-700 leading-relaxed">
+                {strategy.strategy.strategy_summary}
+              </p>
+            </div>
 
-            // Primary Metrics
-            if (kpis.primary_metrics) {
-              sections.push(
-                `📊 PRIMARY METRICS:\n${kpis.primary_metrics
-                  .map((m) => `• ${m.replace(/_/g, " ").toUpperCase()}`)
-                  .join("\n")}`
-              );
-            }
+            {/* Timeline & Duration */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-white p-5 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-5 h-5 text-[#8F00FF]" />
+                  <h4 className="font-inter text-sm font-semibold text-gray-900">
+                    Timeline & Duration
+                  </h4>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><span className="font-medium">Duration:</span> {strategy.duration_days} days</p>
+                  <p><span className="font-medium">Start Date:</span> {strategy.start_date}</p>
+                  <p><span className="font-medium">Status:</span> {strategy.status.replace(/_/g, " ")}</p>
+                </div>
+              </div>
 
-            // Targets
-            if (kpis.targets) {
-              sections.push(`\n🎯 TARGETS:`);
-              Object.entries(kpis.targets).forEach(
-                ([key, value]: [string, any]) => {
-                  if (typeof value === "object") {
-                    sections.push(`\n${key.replace(/_/g, " ").toUpperCase()}:`);
-                    Object.entries(value).forEach(([k, v]) => {
-                      sections.push(`  • ${k.replace(/_/g, " ")}: ${v}`);
-                    });
-                  } else {
-                    sections.push(`• ${key.replace(/_/g, " ")}: ${value}`);
-                  }
-                }
-              );
-            }
+              <div className="bg-white p-5 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Layers className="w-5 h-5 text-[#8F00FF]" />
+                  <h4 className="font-inter text-sm font-semibold text-gray-900">
+                    Platforms
+                  </h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {strategy.selected_platforms.map((platform) => (
+                    <span
+                      key={platform}
+                      className="px-3 py-1 bg-purple-50 text-[#8F00FF] rounded-full text-xs font-medium"
+                    >
+                      {platform.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-            // Measurement Approach
-            if (kpis.measurement_approach) {
-              sections.push(`\n📈 MEASUREMENT:\n${kpis.measurement_approach}`);
-            }
+            {/* Focus Areas */}
+            <div className="bg-white p-5 rounded-xl border border-gray-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-5 h-5 text-[#8F00FF]" />
+                <h4 className="font-inter text-sm font-semibold text-gray-900">
+                  Focus Areas
+                </h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {strategy.focus_areas.map((area) => (
+                  <span
+                    key={area}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium"
+                  >
+                    {area.replace(/_/g, " ").toUpperCase()}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-            // Focus Alignment
-            if (kpis.focus_alignment) {
-              sections.push(`\n🎯 FOCUS ALIGNMENT:\n${kpis.focus_alignment}`);
-            }
+            {/* Special Dates */}
+            {strategy.special_dates && strategy.special_dates.length > 0 && (
+              <div className="bg-white p-5 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-5 h-5 text-[#8F00FF]" />
+                  <h4 className="font-inter text-sm font-semibold text-gray-900">
+                    Special Dates
+                  </h4>
+                </div>
+                <div className="space-y-2">
+                  {strategy.special_dates.map((date, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-2xl">📅</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-gray-900">{date.name}</p>
+                        <p className="text-xs text-gray-600">{date.date} • {date.type}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
 
-            return sections.join("\n");
-          })(),
-        },
-        // COMPETITOR ANALYSIS
-        ...(strategy.research?.competitor_analysis?.competitors
-          ? [
-              {
-                icon: Target,
-                title: "COMPETITOR ANALYSIS",
-                content: `${strategy.research.competitor_analysis.competitors
-                  .map(
-                    (comp: any, idx: number) =>
-                      `${
-                        idx + 1
-                      }. ${comp.name.toUpperCase()}\n   Platforms: ${comp.platforms?.join(
-                        ", "
-                      )}\n   Strengths: ${
-                        comp.organic_strengths
-                      }\n   Engagement: ${comp.engagement_rate}\n   Posting: ${
-                        comp.posting_frequency
-                      }\n   Weaknesses: ${
-                        comp.weaknesses
-                      }\n   Our Opportunity: ${comp.opportunities_for_us}`
-                  )
-                  .join("\n\n")}\n\n📊 LANDSCAPE SUMMARY:\n${
-                  strategy.research.competitor_analysis
-                    .competitive_landscape_summary
-                }\n\n💎 WHITE SPACE OPPORTUNITIES:\n${
-                  strategy.research.competitor_analysis
-                    .white_space_opportunities
-                }`,
-              },
-            ]
-          : []),
-        // FESTIVAL CALENDAR
-        ...(strategy.research?.festival_calendar &&
-        strategy.research.festival_calendar.length > 0
-          ? [
-              {
-                icon: Clock,
-                title: "FESTIVAL & EVENTS CALENDAR",
-                content: strategy.research.festival_calendar
-                  .map(
-                    (event: any) =>
-                      `📅 ${event.date} - ${event.name}\n   Type: ${event.type} | Region: ${event.region}\n   Marketing Relevance: ${event.marketing_relevance}\n   💡 Opportunities: ${event.content_opportunities}\n   ⏰ Prep: ${event.pre_event_buildup}`
-                  )
-                  .join("\n\n"),
-              },
-            ]
-          : []),
-        // CONTENT PREFERENCES (Competitive Differentiation)
-        ...(strategy.content_preferences?.competitive_differentiation
-          ? [
-              {
-                icon: Target,
-                title: "COMPETITIVE DIFFERENTIATION STRATEGY",
-                content: (() => {
-                  const cd =
-                    strategy.content_preferences.competitive_differentiation;
-                  const sections = [];
+      case "themes":
+        return (
+          <div className="space-y-4">
+            {strategy.strategy.content_themes?.map((theme, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                    {idx + 1}
+                  </div>
+                  <h3 className="font-inter text-lg font-semibold text-gray-900">
+                    {theme.theme}
+                  </h3>
+                </div>
 
-                  if (cd.unique_value_proposition) {
-                    sections.push(
-                      `🎯 UNIQUE VALUE PROPOSITION:\n${cd.unique_value_proposition}`
-                    );
-                  }
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-inter text-sm text-gray-700 leading-relaxed">
+                      {theme.description}
+                    </p>
+                  </div>
 
-                  if (cd.organic_content_positioning) {
-                    sections.push(
-                      `\n📢 ORGANIC POSITIONING:\n${cd.organic_content_positioning}`
-                    );
-                  }
+                  <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-1">TARGET SEGMENT</p>
+                      <p className="text-sm text-gray-900">{theme.target_segment || "General Audience"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-1">FREQUENCY</p>
+                      <p className="text-sm text-gray-900">{theme.frequency}</p>
+                    </div>
+                  </div>
 
-                  if (cd.competitive_advantages) {
-                    sections.push(`\n💎 COMPETITIVE ADVANTAGES:`);
-                    cd.competitive_advantages.forEach((adv: any, i: number) => {
-                      sections.push(`\n${i + 1}. ${adv.advantage}`);
-                      sections.push(
-                        `   How to Amplify: ${adv.how_to_amplify_organically}`
-                      );
-                      if (adv.content_examples) {
-                        sections.push(
-                          `   Examples: ${adv.content_examples.join(" | ")}`
-                        );
-                      }
-                    });
-                  }
+                  {theme.organic_growth_rationale && (
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-green-700 mb-2">🚀 ORGANIC GROWTH STRATEGY</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{theme.organic_growth_rationale}</p>
+                    </div>
+                  )}
 
-                  if (cd.brand_voice_for_organic) {
-                    const voice = cd.brand_voice_for_organic;
-                    sections.push(`\n🎭 BRAND VOICE:`);
-                    sections.push(`   Tone: ${voice.tone_description}`);
-                    sections.push(
-                      `   Personality: ${voice.personality_traits?.join(", ")}`
-                    );
-                    sections.push(`   Cultural POV: ${voice.cultural_pov}`);
-                  }
+                  {theme.differentiation && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-700 mb-2">💎 DIFFERENTIATION</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{theme.differentiation}</p>
+                    </div>
+                  )}
 
-                  return sections.join("\n");
-                })(),
-              },
-            ]
-          : []),
-      ]
-    : [];
+                  {theme.viral_potential && (
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-purple-700 mb-2">🎭 VIRAL POTENTIAL</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{theme.viral_potential}</p>
+                    </div>
+                  )}
+
+                  {theme.recommended_platforms && theme.recommended_platforms.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-2">📱 RECOMMENDED PLATFORMS</p>
+                      <div className="flex flex-wrap gap-2">
+                        {theme.recommended_platforms.map((platform) => (
+                          <span
+                            key={platform}
+                            className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
+                          >
+                            {platform.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {theme.example_posts && theme.example_posts.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-3">💡 EXAMPLE POSTS</p>
+                      <div className="space-y-3">
+                        {theme.example_posts.map((post, i) => (
+                          <div key={i} className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-medium">
+                                {post.platform}
+                              </span>
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 mb-1">"{post.hook}"</p>
+                            <p className="text-xs text-gray-600 mb-2">{post.content_description}</p>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="font-semibold text-gray-700">Why Shareable:</span>
+                                <p className="text-gray-600">{post.why_shareable}</p>
+                              </div>
+                              <div>
+                                <span className="font-semibold text-gray-700">Conversion:</span>
+                                <p className="text-gray-600">{post.conversion_tactic}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {theme.engagement_tactics && (
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-yellow-700 mb-2">🎯 ENGAGEMENT TACTICS</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{theme.engagement_tactics}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      case "frequency":
+        return (
+          <div className="space-y-4">
+            {Object.entries(strategy.strategy.posting_frequency || {}).map(([platform, freq]: [string, any]) => (
+              <div key={platform} className="bg-white p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <Grid3x3 className="w-5 h-5 text-[#8F00FF]" />
+                  <h3 className="font-inter text-lg font-semibold text-gray-900">
+                    {platform.toUpperCase()}
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-purple-50 px-4 py-2 rounded-lg">
+                      <p className="text-2xl font-bold text-[#8F00FF]">{freq.posts_per_week}</p>
+                      <p className="text-xs text-gray-600">Posts/Week</p>
+                    </div>
+
+                    {freq.best_posting_times && (
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-gray-500 mb-1">⏰ BEST TIMES</p>
+                        <p className="text-sm text-gray-700">{freq.best_posting_times.join(", ")}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {freq.content_type_distribution && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-2">📋 CONTENT MIX</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {Object.entries(freq.content_type_distribution).map(([type, count]: [string, any]) => (
+                          <div key={type} className="bg-gray-50 p-3 rounded-lg text-center">
+                            <p className="text-lg font-bold text-gray-900">{count}</p>
+                            <p className="text-xs text-gray-600">{type}/week</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {freq.engagement_goal && (
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-green-700 mb-1">🎯 ENGAGEMENT GOAL</p>
+                      <p className="text-sm text-gray-700">{freq.engagement_goal}</p>
+                    </div>
+                  )}
+
+                  {freq.organic_growth_rationale && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-700 mb-2">💡 STRATEGY RATIONALE</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{freq.organic_growth_rationale}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      case "kpis":
+        const kpis = strategy.strategy.kpis;
+        return (
+          <div className="space-y-6">
+            {kpis?.primary_metrics && (
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="w-5 h-5 text-[#8F00FF]" />
+                  <h3 className="font-inter text-lg font-semibold text-gray-900">
+                    Primary Metrics
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {kpis.primary_metrics.map((metric: string) => (
+                    <span
+                      key={metric}
+                      className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium"
+                    >
+                      {metric.replace(/_/g, " ").toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {kpis?.targets && (
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="w-5 h-5 text-[#8F00FF]" />
+                  <h3 className="font-inter text-lg font-semibold text-gray-900">
+                    Targets
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {Object.entries(kpis.targets).map(([key, value]: [string, any]) => (
+                    <div key={key} className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-lg border border-purple-100">
+                      <p className="text-xs font-semibold text-gray-500 mb-1">
+                        {key.replace(/_/g, " ").toUpperCase()}
+                      </p>
+                      {typeof value === "object" ? (
+                        <div className="space-y-1">
+                          {Object.entries(value).map(([k, v]: [string, any]) => (
+                            <p key={k} className="text-sm text-gray-700">
+                              <span className="font-medium">{k.replace(/_/g, " ")}:</span> {v}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-2xl font-bold text-[#8F00FF]">{value}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {kpis?.measurement_approach && (
+              <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                <p className="text-xs font-semibold text-blue-700 mb-3">📈 MEASUREMENT APPROACH</p>
+                <p className="font-inter text-sm text-gray-700 leading-relaxed">{kpis.measurement_approach}</p>
+              </div>
+            )}
+
+            {kpis?.focus_alignment && (
+              <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+                <p className="text-xs font-semibold text-green-700 mb-3">🎯 FOCUS ALIGNMENT</p>
+                <p className="font-inter text-sm text-gray-700 leading-relaxed">{kpis.focus_alignment}</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case "competitors":
+        return (
+          <div className="space-y-4">
+            {strategy.research?.competitor_analysis?.competitors?.map((comp: any, idx: number) => (
+              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    {idx + 1}
+                  </div>
+                  <h3 className="font-inter text-lg font-semibold text-gray-900">
+                    {comp.name}
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  {comp.platforms && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-2">PLATFORMS</p>
+                      <div className="flex flex-wrap gap-2">
+                        {comp.platforms.map((platform: string) => (
+                          <span
+                            key={platform}
+                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+                          >
+                            {platform}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {comp.engagement_rate && (
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <p className="text-xs font-semibold text-blue-700 mb-1">📊 ENGAGEMENT</p>
+                        <p className="text-sm text-gray-700">{comp.engagement_rate}</p>
+                      </div>
+                    )}
+                    {comp.posting_frequency && (
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <p className="text-xs font-semibold text-green-700 mb-1">📅 POSTING</p>
+                        <p className="text-sm text-gray-700">{comp.posting_frequency}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {comp.organic_strengths && (
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-green-700 mb-2">✅ STRENGTHS</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{comp.organic_strengths}</p>
+                    </div>
+                  )}
+
+                  {comp.weaknesses && (
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-red-700 mb-2">❌ WEAKNESSES</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{comp.weaknesses}</p>
+                    </div>
+                  )}
+
+                  {comp.opportunities_for_us && (
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-xs font-semibold text-purple-700 mb-2">💡 OUR OPPORTUNITY</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{comp.opportunities_for_us}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {strategy.research?.competitor_analysis?.competitive_landscape_summary && (
+              <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
+                <p className="text-xs font-semibold text-blue-700 mb-3">📊 COMPETITIVE LANDSCAPE SUMMARY</p>
+                <p className="font-inter text-sm text-gray-700 leading-relaxed">
+                  {strategy.research.competitor_analysis.competitive_landscape_summary}
+                </p>
+              </div>
+            )}
+
+            {strategy.research?.competitor_analysis?.white_space_opportunities && (
+              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+                <p className="text-xs font-semibold text-purple-700 mb-3">💎 WHITE SPACE OPPORTUNITIES</p>
+                <p className="font-inter text-sm text-gray-700 leading-relaxed">
+                  {strategy.research.competitor_analysis.white_space_opportunities}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case "festivals":
+        return (
+          <div className="space-y-4">
+            {strategy.research?.festival_calendar?.map((event: any, idx: number) => (
+              <div key={idx} className="bg-white p-5 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">📅</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-inter text-lg font-semibold text-gray-900">
+                        {event.name}
+                      </h3>
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                        {event.type}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
+                      <span>📍 {event.region}</span>
+                      <span>🗓️ {event.date}</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {event.marketing_relevance && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-xs font-semibold text-blue-700 mb-1">📈 MARKETING RELEVANCE</p>
+                          <p className="text-sm text-gray-700">{event.marketing_relevance}</p>
+                        </div>
+                      )}
+
+                      {event.content_opportunities && (
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <p className="text-xs font-semibold text-green-700 mb-1">💡 CONTENT OPPORTUNITIES</p>
+                          <p className="text-sm text-gray-700">{event.content_opportunities}</p>
+                        </div>
+                      )}
+
+                      {event.pre_event_buildup && (
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <p className="text-xs font-semibold text-purple-700 mb-1">⏰ PRE-EVENT PREPARATION</p>
+                          <p className="text-sm text-gray-700">{event.pre_event_buildup}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -639,33 +878,41 @@ export default function StrategyDetail() {
                 </div>
               )}
 
-              {/* Strategy Sections */}
-              {strategy.strategy && strategyData.length > 0 && (
-                <div className="space-y-6">
-                  {strategyData.map((section, index) => (
-                    <div key={index} className="flex gap-4">
-                      <div className="shrink-0">
-                        <div
-                          className="w-8 h-8 rounded-lg flex items-center justify-center"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #A855F7 0%, #8F00FF 100%)",
-                          }}
+              {/* Tab Navigation */}
+              {strategy.strategy && (
+                <>
+                  <div className="flex gap-2 overflow-x-auto hide-scrollbar border-b border-gray-200 mb-6">
+                    {tabs.map((tab) => {
+                      const TabIcon = tab.icon;
+                      const isActive = activeTab === tab.id;
+
+                      // Hide tabs if no data
+                      if (tab.id === "competitors" && !strategy.research?.competitor_analysis?.competitors) return null;
+                      if (tab.id === "festivals" && (!strategy.research?.festival_calendar || strategy.research.festival_calendar.length === 0)) return null;
+                      if (tab.id === "themes" && (!strategy.strategy?.content_themes || strategy.strategy.content_themes.length === 0)) return null;
+
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`flex items-center gap-2 px-4 py-3 font-inter text-sm font-medium whitespace-nowrap transition-all border-b-2 ${
+                            isActive
+                              ? "text-[#8F00FF] border-[#8F00FF]"
+                              : "text-gray-600 border-transparent hover:text-gray-900"
+                          }`}
                         >
-                          <section.icon className="w-4 h-4 text-white" />
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-inter text-xs font-semibold text-gray-900 mb-2 tracking-wide">
-                          {section.title}
-                        </h3>
-                        <p className="font-inter text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                          {section.content}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                          <TabIcon className="w-4 h-4" />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="space-y-6">
+                    {renderTabContent()}
+                  </div>
+                </>
               )}
 
               {/* Credit Info */}
