@@ -166,53 +166,63 @@ export default function ExistingBrandColorPalette() {
     if (palette) {
       console.log({ color_preferences: palette.colors });
 
-      // Call Brand Context API with selected colors
-      try {
-        console.log('📡 Creating brand context via API (Existing Brand)...');
-        console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
-        console.log('🔍 Branding data:', brandingData);
+      // Step 1: Create Brand Context API first (must complete before navigation)
+      (async () => {
+        let businessIdToUse: string | null = null;
 
-        // Map colors: 0=primary, 1=secondary, 2=accent, 3=others
-        const selectedColors = palette.colors;
+        try {
+          console.log('📡 Step 1: Creating brand context via API (Existing Brand)...');
+          console.log('🔍 Auth token present:', !!localStorage.getItem('auth_token'));
+          console.log('🔍 Branding data:', brandingData);
 
-        const requestPayload = {
-          business_name: brandingData.newBrand.businessName || 'Your Business',
-          industry_category: brandingData.newBrand.industry || 'General',
-          brand_personality: brandingData.brandDetails.brandPersonality || '',
-          brand_tone: brandingData.brandDetails.styleReferences || '',
-          color_palette: {
-            primary: selectedColors[0] || '#6366F1',
-            secondary: selectedColors[1] || '#8B5CF6',
-            accent: selectedColors[2] || '#EC4899',
-            others: selectedColors[3] || '#F3F4F6',
-          },
-          typography: [],
-          literature: {
-            tagline: '',
-            mission: '',
-            story: '',
-          },
-          core_values: brandingData.brandDetails.coreValues
-            ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
-            : [],
-        };
+          // Map colors: 0=primary, 1=secondary, 2=accent, 3=others
+          const selectedColors = palette.colors;
 
-        console.log('📦 Request payload:', requestPayload);
+          const requestPayload = {
+            business_name: brandingData.newBrand.businessName || 'Your Business',
+            industry_category: brandingData.newBrand.industry || 'General',
+            brand_personality: brandingData.brandDetails.brandPersonality || '',
+            brand_tone: brandingData.brandDetails.styleReferences || '',
+            color_palette: {
+              primary: selectedColors[0] || '#6366F1',
+              secondary: selectedColors[1] || '#8B5CF6',
+              accent: selectedColors[2] || '#EC4899',
+              others: selectedColors[3] || '#F3F4F6',
+            },
+            typography: [],
+            literature: {
+              tagline: '',
+              mission: '',
+              story: '',
+            },
+            core_values: brandingData.brandDetails.coreValues
+              ? brandingData.brandDetails.coreValues.split(',').map((v: string) => v.trim())
+              : [],
+          };
 
-        const brandContextResponse = await brandContextService.createBrandContext(requestPayload);
+          console.log('📦 Request payload:', requestPayload);
 
-        // Store business_id in context
-        if (brandContextResponse.id) {
-          setBusinessId(brandContextResponse.id);
-          console.log('✅ Brand context created with business_id:', brandContextResponse.id);
-          console.log('✅ Business ID also saved to localStorage automatically');
+          const brandContextResponse = await brandContextService.createBrandContext(requestPayload);
+
+          // Store business_id in context
+          if (brandContextResponse.id) {
+            setBusinessId(brandContextResponse.id);
+            businessIdToUse = brandContextResponse.id;
+            console.log('✅ Brand context created with business_id:', brandContextResponse.id);
+            console.log('✅ Business ID also saved to localStorage automatically');
+            console.log('✅ Business ID ready for any subsequent LLM/AI operations');
+          } else {
+            console.error('❌ Brand context API returned but no business_id found');
+          }
+        } catch (apiError) {
+          console.error('❌ Failed to create brand context:', apiError);
+          // Continue flow even if API call fails
         }
-      } catch (apiError) {
-        console.error('❌ Failed to create brand context:', apiError);
-        // Continue flow even if API call fails
-      }
 
-      navigate("/onboarding/upload-logo");
+        // Step 2: Navigate after business_id is obtained
+        console.log('🚀 Navigating to upload-logo with business_id:', businessIdToUse || 'not available');
+        navigate("/onboarding/upload-logo");
+      })();
     }
   };
 
