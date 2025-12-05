@@ -21,6 +21,8 @@ interface CompanyIndustryFieldsProps {
   setCompanyName: (value: string) => void;
   selectedIndustry: string;
   setSelectedIndustry: (value: string) => void;
+  customIndustry?: string;
+  setCustomIndustry?: (value: string) => void;
   hasCompanyError?: boolean;
   hasIndustryError?: boolean;
   trigger?: number;
@@ -31,6 +33,8 @@ export function CompanyIndustryFields({
   setCompanyName,
   selectedIndustry,
   setSelectedIndustry,
+  customIndustry = "",
+  setCustomIndustry,
   hasCompanyError = false,
   hasIndustryError = false,
   trigger = 0,
@@ -38,8 +42,10 @@ export function CompanyIndustryFields({
   const [open, setOpen] = useState(false);
   const companyRef = useRef<HTMLInputElement>(null);
   const industryRef = useRef<HTMLButtonElement>(null);
+  const customIndustryRef = useRef<HTMLInputElement>(null);
   const [shakeCompany, setShakeCompany] = useState(false);
   const [shakeIndustry, setShakeIndustry] = useState(false);
+  const showCustomInput = selectedIndustry === "other";
 
   useEffect(() => {
     if (hasCompanyError && trigger > 0) {
@@ -84,75 +90,98 @@ export function CompanyIndustryFields({
         <label className="absolute -top-2 left-3 md:left-4 bg-white px-1 text-xs md:text-[12px] font-normal leading-[100%] tracking-normal font-inter text-black z-10">
           Domain / Industry<span className="text-red-500">*</span>
         </label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <button
-              ref={industryRef}
-              type="button"
-              role="combobox"
-              aria-expanded={open}
-              className={`w-full rounded-xl md:rounded-2xl border bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 focus:outline-none flex items-center justify-between ${
-                hasIndustryError
-                  ? "border-red-500 focus:border-red-500"
-                  : "border-[#E4E4E4] focus:border-gray-400"
-              } ${shakeIndustry ? 'animate-vibrate' : ''}`}
-            >
-              <span
-                className={cn(
-                  !selectedIndustry && "text-gray-400",
-                  selectedIndustry && "truncate text-sm"
-                )}
+        {showCustomInput ? (
+          // Text input when "Other" is selected
+          <input
+            ref={customIndustryRef}
+            type="text"
+            placeholder="Enter your industry"
+            value={customIndustry}
+            onChange={(e) => setCustomIndustry?.(e.target.value)}
+            onBlur={() => {
+              // Allow user to clear and go back to dropdown if empty
+              if (!customIndustry) {
+                setSelectedIndustry("");
+              }
+            }}
+            className={`w-full rounded-xl md:rounded-2xl border bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 placeholder:text-gray-400 focus:outline-none ${
+              hasIndustryError
+                ? "border-red-500 focus:border-red-500"
+                : "border-[#E4E4E4] focus:border-gray-400"
+            } ${shakeIndustry ? 'animate-vibrate' : ''}`}
+          />
+        ) : (
+          // Dropdown when "Other" is not selected
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button
+                ref={industryRef}
+                type="button"
+                role="combobox"
+                aria-expanded={open}
+                className={`w-full rounded-xl md:rounded-2xl border bg-white p-3 md:p-4 text-sm md:text-[16px] font-normal leading-[100%] tracking-normal font-inter text-gray-700 focus:outline-none flex items-center justify-between ${
+                  hasIndustryError
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-[#E4E4E4] focus:border-gray-400"
+                } ${shakeIndustry ? 'animate-vibrate' : ''}`}
               >
-                {selectedIndustry
-                  ? industries.find(
-                      (industry) => industry.value === selectedIndustry
-                    )?.label
-                  : "Select industry"}
-              </span>
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-[--radix-popover-trigger-width] p-0"
-            align="start"
-          >
-            <Command>
-              <CommandInput
-                placeholder="Search industry..."
-                className="border-b"
-              />
-              <CommandList>
-                <CommandEmpty>No industry found.</CommandEmpty>
-                <CommandGroup>
-                  {industries.map((industry) => (
-                    <CommandItem
-                      key={industry.value}
-                      value={industry.value}
-                      onSelect={(currentValue) => {
-                        setSelectedIndustry(
-                          currentValue === selectedIndustry
-                            ? ""
-                            : currentValue
-                        );
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4 ",
-                          selectedIndustry === industry.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {industry.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                <span
+                  className={cn(
+                    !selectedIndustry && "text-gray-400",
+                    selectedIndustry && "truncate text-sm"
+                  )}
+                >
+                  {selectedIndustry
+                    ? industries.find(
+                        (industry) => industry.value === selectedIndustry
+                      )?.label
+                    : "Select industry"}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[--radix-popover-trigger-width] p-0"
+              align="start"
+            >
+              <Command>
+                <CommandInput
+                  placeholder="Search industry..."
+                  className="border-b"
+                />
+                <CommandList>
+                  <CommandEmpty>No industry found.</CommandEmpty>
+                  <CommandGroup>
+                    {industries.map((industry) => (
+                      <CommandItem
+                        key={industry.value}
+                        value={industry.value}
+                        onSelect={(currentValue) => {
+                          setSelectedIndustry(
+                            currentValue === selectedIndustry
+                              ? ""
+                              : currentValue
+                          );
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4 ",
+                            selectedIndustry === industry.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {industry.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
     </div>
   );
