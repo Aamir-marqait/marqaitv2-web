@@ -325,7 +325,7 @@ export default function StrategyDetail() {
         return (
           <div className="space-y-6">
             {/* Strategy Summary */}
-            <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+            <div className="bg-linear-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
               <div className="flex items-center gap-2 mb-4">
                 <Target className="w-5 h-5 text-[#8F00FF]" />
                 <h3 className="font-inter text-lg font-semibold text-gray-900">
@@ -424,7 +424,7 @@ export default function StrategyDetail() {
             {strategy.strategy.content_themes?.map((theme, idx) => (
               <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-linear-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                     {idx + 1}
                   </div>
                   <h3 className="font-inter text-lg font-semibold text-gray-900">
@@ -623,7 +623,7 @@ export default function StrategyDetail() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {Object.entries(kpis.targets).map(([key, value]: [string, any]) => (
-                    <div key={key} className="bg-gradient-to-br from-purple-50 to-white p-4 rounded-lg border border-purple-100">
+                    <div key={key} className="bg-linear-to-br from-purple-50 to-white p-4 rounded-lg border border-purple-100">
                       <p className="text-xs font-semibold text-gray-500 mb-1">
                         {key.replace(/_/g, " ").toUpperCase()}
                       </p>
@@ -666,7 +666,7 @@ export default function StrategyDetail() {
             {strategy.research?.competitor_analysis?.competitors?.map((comp: any, idx: number) => (
               <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold">
                     {idx + 1}
                   </div>
                   <h3 className="font-inter text-lg font-semibold text-gray-900">
@@ -731,7 +731,7 @@ export default function StrategyDetail() {
             ))}
 
             {strategy.research?.competitor_analysis?.competitive_landscape_summary && (
-              <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
+              <div className="bg-linear-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
                 <p className="text-xs font-semibold text-blue-700 mb-3">📊 COMPETITIVE LANDSCAPE SUMMARY</p>
                 <p className="font-inter text-sm text-gray-700 leading-relaxed">
                   {strategy.research.competitor_analysis.competitive_landscape_summary}
@@ -740,7 +740,7 @@ export default function StrategyDetail() {
             )}
 
             {strategy.research?.competitor_analysis?.white_space_opportunities && (
-              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
+              <div className="bg-linear-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
                 <p className="text-xs font-semibold text-purple-700 mb-3">💎 WHITE SPACE OPPORTUNITIES</p>
                 <p className="font-inter text-sm text-gray-700 leading-relaxed">
                   {strategy.research.competitor_analysis.white_space_opportunities}
