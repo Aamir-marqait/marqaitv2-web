@@ -321,12 +321,61 @@ export default function StrategyCreationChat() {
           break;
 
         case Step.SPECIAL_DATES:
-          // For now, just skip special dates parsing - can be enhanced later
-          setStrategyData((prev) => ({ ...prev, specialDates: [] }));
+          // Parse special dates from user input
+          const parsedSpecialDates: SpecialDate[] = [];
+
+          if (userResponse.toLowerCase() !== "none" && userResponse.toLowerCase() !== "skip") {
+            // Try to parse dates from user input
+            // Expected format examples:
+            // "Product Launch on Dec 15" or "Dec 15 - Product Launch"
+            // "Holiday Sale on 2025-12-25"
+            const lines = userResponse.split(/[,\n;]+/).map(line => line.trim());
+
+            lines.forEach(line => {
+              if (line.length > 0) {
+                // Try to extract date and name
+                const dateMatch = line.match(/(\d{4}-\d{2}-\d{2})/); // YYYY-MM-DD format
+                const monthDayMatch = line.match(/([A-Za-z]+)\s+(\d{1,2})/); // "Dec 15" format
+
+                let dateStr = "";
+                let eventName = line;
+
+                if (dateMatch) {
+                  dateStr = dateMatch[1];
+                  eventName = line.replace(dateMatch[0], "").replace(/on|at|-/gi, "").trim();
+                } else if (monthDayMatch) {
+                  // Convert "Dec 15" to YYYY-MM-DD
+                  const monthMap: Record<string, string> = {
+                    jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+                    jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12"
+                  };
+                  const month = monthMap[monthDayMatch[1].toLowerCase().substring(0, 3)];
+                  const day = monthDayMatch[2].padStart(2, "0");
+                  const year = new Date(strategyData.startDate).getFullYear();
+                  dateStr = `${year}-${month}-${day}`;
+                  eventName = line.replace(monthDayMatch[0], "").replace(/on|at|-/gi, "").trim();
+                }
+
+                if (dateStr) {
+                  parsedSpecialDates.push({
+                    date: dateStr,
+                    name: eventName || "Special Event",
+                    type: "business"
+                  });
+                }
+              }
+            });
+          }
+
+          setStrategyData((prev) => ({ ...prev, specialDates: parsedSpecialDates }));
           addMessage(userResponse, "user");
           setTimeout(() => {
+            const specialDatesText = parsedSpecialDates.length > 0
+              ? `\n📅 Special Dates: ${parsedSpecialDates.map(d => d.name).join(", ")}`
+              : "";
+
             addMessage(
-              `Perfect! Let me summarize:\n\n📋 Project: ${strategyData.projectName}\n⏱️ Duration: ${strategyData.durationDays} days\n📅 Start Date: ${strategyData.startDate}\n📱 Platforms: ${strategyData.selectedPlatforms.join(", ")}\n🎯 Focus: ${strategyData.focusAreas.join(", ")}\n\nReady to create your strategy? This will cost 20 credits.`,
+              `Perfect! Let me summarize:\n\n📋 Project: ${strategyData.projectName}\n⏱️ Duration: ${strategyData.durationDays} days\n📅 Start Date: ${strategyData.startDate}\n📱 Platforms: ${strategyData.selectedPlatforms.join(", ")}\n🎯 Focus: ${strategyData.focusAreas.join(", ")}${specialDatesText}\n\nReady to create your strategy? This will cost 20 credits.`,
               "ai",
               ["Yes, Create Strategy!", "Let me make changes"]
             );
