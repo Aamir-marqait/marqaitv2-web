@@ -4,11 +4,11 @@ import ContentDetailModal from "@/components/content-calendar/ContentDetailModal
 import ApproveContentModal from "@/components/content-calendar/ApproveContentModal";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { strategyService } from "@/api/services";
-import type { CalendarItemSummary } from "@/api/types";
+import type { CalendarItemSummary, CalendarItem } from "@/api/types";
 
 interface ContentItem {
   id: string;
-  platform: "instagram-post" | "instagram-reel" | "facebook-post";
+  platform: string;
   label: string;
   topic?: string;
   caption?: string;
@@ -28,7 +28,7 @@ interface CalendarDay {
 
 export default function ContentCalendar() {
   // Platform configurations with colors
-  const platformConfig = {
+  const platformConfig: Record<string, { label: string; color: string; icon: string }> = {
     "instagram-post": {
       label: "Insta - Post",
       color: "text-[#E91E63]",
@@ -39,10 +39,55 @@ export default function ContentCalendar() {
       color: "text-[#E91E63]",
       icon: "🎬",
     },
+    "instagram-story": {
+      label: "Insta - Story",
+      color: "text-[#E91E63]",
+      icon: "📱",
+    },
+    "instagram-carousel": {
+      label: "Insta - Carousel",
+      color: "text-[#E91E63]",
+      icon: "🎠",
+    },
     "facebook-post": {
       label: "FB - Post",
       color: "text-[#1877F2]",
       icon: "📘",
+    },
+    "facebook-reel": {
+      label: "FB - Reel",
+      color: "text-[#1877F2]",
+      icon: "🎬",
+    },
+    "facebook-story": {
+      label: "FB - Story",
+      color: "text-[#1877F2]",
+      icon: "📱",
+    },
+    "linkedin-post": {
+      label: "LinkedIn - Post",
+      color: "text-[#0A66C2]",
+      icon: "💼",
+    },
+    "linkedin-article": {
+      label: "LinkedIn - Article",
+      color: "text-[#0A66C2]",
+      icon: "📝",
+    },
+    "x-post": {
+      label: "X - Post",
+      color: "text-[#000000]",
+      icon: "✖️",
+    },
+    "tiktok-post": {
+      label: "TikTok - Video",
+      color: "text-[#000000]",
+      icon: "🎵",
+    },
+    "pinterest-post": {
+      label: "Pinterest - Pin",
+      color: "text-[#E60023]",
+      icon: "📌",
     },
   };
 
@@ -323,7 +368,7 @@ export default function ContentCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date()); // Will be set based on API data
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [platformFilter] = useState("All Platforms");
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
+  const [selectedContent, setSelectedContent] = useState<CalendarItem | null>(
     null
   );
   const [showModal, setShowModal] = useState(false);
@@ -332,6 +377,7 @@ export default function ContentCalendar() {
     useState<Record<string, ContentItem[]>>(initialContentData);
   const [calendarItems, setCalendarItems] = useState<CalendarItemSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch calendar items from API
@@ -468,17 +514,22 @@ export default function ContentCalendar() {
     year: "numeric",
   });
 
-  const handleContentClick = (item: ContentItem, dayInfo: CalendarDay) => {
-    // Get day of week
-    const date = new Date(dayInfo.year, dayInfo.month, dayInfo.day);
-    const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
-    const monthName = date.toLocaleDateString("en-US", { month: "long" });
+  const handleContentClick = async (item: ContentItem, dayInfo: CalendarDay) => {
+    try {
+      setShowModal(true);
+      setIsLoadingDetails(true);
+      setSelectedContent(null);
 
-    setSelectedContent({
-      ...item,
-      date: `${monthName} ${dayInfo.day} - ${dayOfWeek}`,
-    });
-    setShowModal(true);
+      // Fetch full calendar item details from API
+      const fullDetails = await strategyService.getCalendarItem(item.id);
+      setSelectedContent(fullDetails);
+    } catch (err: any) {
+      console.error("Error fetching calendar item details:", err);
+      // Optionally show an error message to the user
+      setShowModal(false);
+    } finally {
+      setIsLoadingDetails(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -486,75 +537,71 @@ export default function ContentCalendar() {
     setSelectedContent(null);
   };
 
-  const handleDelete = () => {
-    if (selectedContent) {
-      // TODO: Implement actual delete logic - remove from state/backend
-      console.log("Delete content:", selectedContent.id);
-    }
-    handleCloseModal();
-  };
-
-  const handleMove = (newDate: Date) => {
+  const handleDelete = async () => {
     if (!selectedContent) return;
 
-    // Create new date key for the target date
-    const newDateKey = `${newDate.getDate()}-${
-      newDate.getMonth() + 1
-    }-${newDate.getFullYear()}`;
+    try {
+      // TODO: Implement delete API call when available
+      // await strategyService.deleteCalendarItem(selectedContent.id);
+      console.log("Delete content:", selectedContent.id);
 
-    // Find and remove the content from its current location
-    const updatedContentData = { ...contentData };
-    let contentToMove: ContentItem | null = null;
-    let oldDateKey: string | null = null;
-
-    // Find the content item in the current data
-    for (const [dateKey, items] of Object.entries(updatedContentData)) {
-      const itemIndex = items.findIndex(
-        (item) => item.id === selectedContent.id
-      );
-      if (itemIndex !== -1) {
-        // Found the item - remove it from current date
-        contentToMove = items[itemIndex];
-        oldDateKey = dateKey;
-        updatedContentData[dateKey] = items.filter(
-          (item) => item.id !== selectedContent.id
-        );
-
-        // Clean up empty date arrays
-        if (updatedContentData[dateKey].length === 0) {
-          delete updatedContentData[dateKey];
-        }
-        break;
-      }
+      // For now, just close the modal
+      // In the future, refresh the calendar after deletion
+      handleCloseModal();
+    } catch (err) {
+      console.error("Error deleting calendar item:", err);
     }
+  };
 
-    // If content was found, add it to the new date
-    if (contentToMove) {
-      // Update the content item's date string
-      const dayOfWeek = newDate.toLocaleDateString("en-US", {
-        weekday: "long",
+  const handleMove = async (newDate: Date) => {
+    if (!selectedContent) return;
+
+    try {
+      // Format new date
+      const newDateStr = newDate.toISOString().split('T')[0];
+
+      // Update calendar item with new date
+      await strategyService.updateCalendarItem(selectedContent.id, {
+        scheduled_date: newDateStr
       });
-      const monthName = newDate.toLocaleDateString("en-US", { month: "long" });
-      contentToMove.date = `${monthName} ${newDate.getDate()} - ${dayOfWeek}`;
 
-      // Add to new date
-      if (updatedContentData[newDateKey]) {
-        updatedContentData[newDateKey] = [
-          ...updatedContentData[newDateKey],
-          contentToMove,
-        ];
-      } else {
-        updatedContentData[newDateKey] = [contentToMove];
+      // Refresh calendar items
+      if (strategyId) {
+        const items = await strategyService.getCalendarItemsDetailed(strategyId);
+        setCalendarItems(items);
+
+        // Retransform data for display
+        const transformedData: Record<string, ContentItem[]> = {};
+        items.forEach((item) => {
+          const date = new Date(item.scheduled_date);
+          const dateKey = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+          const platformKey = `${item.platform}-${item.content_type}` as any;
+
+          const contentItem: ContentItem = {
+            id: item.id,
+            platform: platformKey,
+            label: `${item.platform.charAt(0).toUpperCase() + item.platform.slice(1)} - ${item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)}`,
+            topic: item.content_theme,
+            time: item.scheduled_time,
+            date: date.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              weekday: "long"
+            }),
+          };
+
+          if (!transformedData[dateKey]) {
+            transformedData[dateKey] = [];
+          }
+          transformedData[dateKey].push(contentItem);
+        });
+
+        setContentData(transformedData);
       }
 
-      // Update state
-      setContentData(updatedContentData);
-      console.log(
-        `Moved content ${selectedContent.id} from ${oldDateKey} to ${newDateKey}`
-      );
+    } catch (err) {
+      console.error("Error moving calendar item:", err);
     }
-
-    handleCloseModal();
   };
 
   const handleEdit = () => {
@@ -741,11 +788,11 @@ export default function ContentCalendar() {
                         key={item.id}
                         onClick={() => handleContentClick(item, dayInfo)}
                         className={`flex items-center gap-1 text-xs font-inter cursor-pointer hover:opacity-70 transition-opacity ${
-                          platformConfig[item.platform].color
+                          platformConfig[item.platform]?.color || "text-gray-700"
                         }`}
                       >
                         <span className="text-base">
-                          {item.platform === "facebook-post" ? "📘" : "📷"}
+                          {platformConfig[item.platform]?.icon || "📷"}
                         </span>
                         <span className="font-medium">{item.label}</span>
                       </div>
@@ -786,6 +833,7 @@ export default function ContentCalendar() {
         <ContentDetailModal
           content={selectedContent}
           isOpen={showModal}
+          isLoading={isLoadingDetails}
           onClose={handleCloseModal}
           onDelete={handleDelete}
           onMove={handleMove}
